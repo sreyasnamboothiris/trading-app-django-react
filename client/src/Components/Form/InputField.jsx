@@ -12,7 +12,7 @@ function InputField({ control, name, type, placeholder, rules }) {
         render={({ field }) => (
           <input
             {...field}
-            className='text-white text-left rounded-[12px] bg-[#1A3B5D]'
+            className='text-white text-center rounded-s-md bg-[#1A3B5D]'
             type={type}
             placeholder={placeholder}
           />

@@ -1,10 +1,11 @@
 import React,{useState} from 'react'
 import { useForm } from 'react-hook-form'
+import api from '../../api';
 
 import InputField from './InputField';
 
-function Form() {
-  const [isLogin, setIsLogin] = useState(true)
+function Form(props) {
+  const isLogin = props.signupStatus
     const {
         control,
         handleSubmit,
@@ -15,23 +16,32 @@ function Form() {
           console.log("Logging In:", data);
           alert("Login Successful!");
         } else {
-          console.log("Signing Up:", data);
+          api.post('user/signup/',data)
+      .then(response=>{
+        
+       
+      })
+      .catch(error=>{
+        
+        
+      })
           alert("Sign Up Successful!");
         }
       };
   return (
     <div>
-      <div className="flex flex-col items-center justify-center h-screen bg-whit">
-      <div className="w-96 p-6 bg-[#1E1E2C] rounded-xl shadow-md">
-        <h2 className="text-2xl font-bold text-center text-white mb-6">
+      <div className="flex flex-col items-center justify-center mt-24 bg-white">
+      <div className="w-96 p-6 bg-white">
+        <h2 className="text-2xl font-bold text-center text-black mb-6">
           {isLogin ? "Login" : "Sign Up"}
         </h2>
-
         <form onSubmit={handleSubmit(onSubmit)}>
           {/* Email Input */}
-          <div className="flex flex-col mb-4">
-            <div className="flex rounded-[12px] flex-row bg-[#1A3B5D] items-center justify-center">
-              <i className="fa-solid fa-envelope p-2 ml-2 mr-2"></i>
+      <div className='grid grid-cols-1 gap-10'>
+        <div className='grid grid-cols-1 gap-y-12'>
+          <div className="flex flex-col">
+            <div className="flex flex-row bg-[#1A3B5D] rounded-md items-center justify-center">
+            
               <InputField
                 control={control}
                 name="email"
@@ -55,8 +65,7 @@ function Form() {
 
           {/* Password Input */}
           <div className="flex flex-col mb-4">
-            <div className="flex rounded-[12px] flex-row bg-[#1A3B5D] items-center justify-center">
-              <i className="fa-solid fa-lock p-2 ml-2 mr-2"></i>
+            <div className="flex flex-row bg-[#1A3B5D] rounded-md items-center justify-center">
               <InputField
                 control={control}
                 name="password"
@@ -77,31 +86,36 @@ function Form() {
               </span>
             )}
           </div>
+        </div>
+          {isLogin ? 
+            <div className='flex justify-between'>
+            <div className='flex items-center me-4'>
+              <input type="checkbox" className='rounded-[12px]' />
+              <label htmlFor="" className='ms-2 text-sm text-black '>Remember me</label>
+            </div>
+            <div>
+              <a href="" className='text-black text-sm'>Forgot password</a>
+            </div>
+            </div>
+            : <div className='flex justify-between'>
+                <div className='flex items-center me-4'>
+
+                </div>
+              </div>
+            }
+          </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-2 bg-[#2D5F8B] text-white rounded-[12px] hover:bg-[#05a2be] transition"
+            className="w-full py-2 bg-[#2D5F8B] text-white font-bold text-xl rounded-md hover:bg-[#05a2be] transition"
           >
             {isLogin ? "Login" : "Sign Up"}
           </button>
         </form>
-
-        {/* Toggle Button */}
-        <div className="mt-4 text-center">
-          <p className="text-white text-sm">
-            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-[#06b6d4] font-semibold hover:underline"
-            >
-              {isLogin ? "Sign Up" : "Login"}
-            </button>
-          </p>
-        </div>
       </div>
     </div>
-    </div>
+  </div>
   )
 }
 
