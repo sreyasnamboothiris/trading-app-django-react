@@ -4,7 +4,7 @@ import Form from '../Form/Form'
 function Login() {
   const  [isLogin,setIsLogin] = useState(true)
   return (
-    <div className='flex flex-col items-center rounded-xl shadow-md h-screen'>
+    <div className='flex flex-col items-center rounded-xl'>
       <div className='flex justify-center p-4 text-black'>
       <h1 className='text-4xl font-bold'>Welcome</h1>
       </div>

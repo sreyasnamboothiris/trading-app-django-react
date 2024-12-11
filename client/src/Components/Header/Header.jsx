@@ -24,50 +24,132 @@ function Header() {
   return (
     <header className="bg-[#2D5F8B] w-full h-[100px] flex items-center px-6">
       {/* Left Empty Section */}
-      <div className="flex-grow">
-        <h1>Money Minder</h1>
+      <div className="flex flex-grow lg:ml-32 flex-col">
+        <div className="flex flex-row">
+          <div className="text-6xl text-white font-serif">
+            M
+          </div>
+          <div className="flex flex-col text-white text-xl">
+            <div>
+              oney
+            </div>
+            <div>
+            inder  
+            </div>  
+          </div>
+        </div>
       </div>
 
+
       {/* Right Section */}
-      <div>
-        <div className=" hidden lg:flex grid grid-cols-6 gap-6">
-        <div className={`relative group cursor-pointer hover:bg-[#002F42] rounded-md w-10 h-10 flex items-center justify-center transition-colors duration-700 ease-in-out hover:bg-[#002F42] ${isActive("/user/market") ? "bg-[#002F42] rounded" : ""}`}>
-            <img src={MarketIcon} alt="Watchlist" className="w-8 h-8 rounded" />
-            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-              Market
-            </div>
+      <div className="">
+      <div className="hidden lg:flex grid grid-cols-6 gap-10">
+      <div
+        className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
+          isActive("/user/market") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
+        }`}
+      >
+        <img src={MarketIcon} alt="Market" className="rounded" />
+        <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
+          Market
+        </div>
+        <div
+          className={`absolute inset-x-0 -bottom-4 h-[3px] ${
+            isActive("/user/market")
+              ? "bg-[#002F42] scale-x-100"
+              : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
+          } transition-transform duration-500 ease-in-out origin-center`}
+        >
+        </div>
+
+      </div>
+        
+        <div
+          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}
+        >
+          <img src={WatchlistIcon} alt="Watchlist" className="w-8 h-8 rounded" />
+          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
+            Watchlist
           </div>
-          <div className={`relative group cursor-pointer hover:bg-[#002F42] rounded-md w-10 h-10 flex items-center justify-center transition-colors duration-700 ease-in-out hover:bg-[#002F42] ${isActive("/user/watchlist") ? "bg-[#002F42] rounded" : ""}`}>
-            <img src={WatchlistIcon} alt="Watchlist" className="w-8 h-8 rounded" />
-            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-              Watchlist
-            </div>
+          <div
+            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
+              isActive("/user/watchlist")
+                ? "bg-[#002F42] scale-x-100"
+                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
+            } transition-transform duration-500 ease-in-out origin-center`}
+          ></div>
+        </div>
+
+        <div
+          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}
+        >
+          <img src={PortfolioIcon} alt="Portfolio" className="rounded" />
+          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
+            Portfolio
           </div>
-          <div className={`relative group cursor-pointer hover:bg-[#002F42] rounded-md w-10 h-10 flex items-center justify-center transition-colors duration-700 ease-in-out hover:bg-[#002F42] ${isActive("/user/portfolio") ? "bg-[#002F42] rounded" : ""}`}>
-            <img src={PortfolioIcon} alt="Watchlist" className="w-8 h-8 rounded" />
-            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-              Portfolio
-            </div>
+          <div
+            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
+              isActive("/user/portfolio")
+                ? "bg-[#002F42] scale-x-100"
+                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
+            } transition-transform duration-500 ease-in-out origin-center`}
+          ></div>
+        </div>
+
+        <div
+          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
+            isActive("/user/orders") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
+          }`}
+        >
+          <img src={OrdersIcon} alt="Orders" className="rounded" />
+          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
+            Orders
           </div>
-          <div className={`relative group cursor-pointer hover:bg-[#002F42] rounded-md w-10 h-10 flex items-center justify-center transition-colors duration-700 ease-in-out hover:bg-[#002F42] ${isActive("/user/orders") ? "bg-[#002F42] rounded" : ""}`}>
-            <img src={OrdersIcon} alt="Watchlist" className="w-8 h-8 rounded" />
-            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-              Orders
-            </div>
+          <div
+            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
+              isActive("/user/orders")
+                ? "bg-[#002F42] scale-x-100"
+                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
+            } transition-transform duration-500 ease-in-out origin-center`}
+          ></div>
+        </div>
+
+        <div
+          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
+            isActive("/user/notification") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
+          }`}
+        >
+          <img src={NotificationsIcon} alt="Notifications" className="rounded" />
+          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
+            Notifications
           </div>
-          <div className={`relative group cursor-pointer hover:bg-[#002F42] rounded-md w-10 h-10 flex items-center justify-center transition-colors duration-700 ease-in-out hover:bg-[#002F42] ${isActive("/user/notification") ? "bg-[#002F42] rounded" : ""}`}>
-            <img src={NotificationsIcon} alt="Watchlist" className="w-8 h-8 rounded" />
-            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-              Notifications
-            </div>
+          <div
+            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
+              isActive("/user/notification")
+                ? "bg-[#002F42] scale-x-100"
+                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
+            } transition-transform duration-500 ease-in-out origin-center`}
+          ></div>
+        </div>
+
+        <div
+          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
+            isActive("/user/profile") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
+          }`}
+        >
+          <img src={ProfileIcon} alt="Profile" className="rounded" />
+          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
+            Profile
           </div>
-          <div className={`relative group cursor-pointer hover:bg-[#002F42] rounded-md w-10 h-10 flex items-center justify-center transition-colors duration-700 ease-in-out hover:bg-[#002F42] ${isActive("/user/profile") ? "bg-[#002F42] rounded" : ""}`}>
-            <img src={ProfileIcon} alt="Watchlist" className="w-8 h-8 rounded" />
-            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-              Profile
-            </div>
-          </div>
-          
+          <div
+            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
+              isActive("/user/profile")
+                ? "bg-[#002F42] scale-x-100"
+                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
+            } transition-transform duration-500 ease-in-out origin-center`}
+          ></div>
+        </div>
+
           <div>
 
           </div>

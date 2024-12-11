@@ -7,8 +7,8 @@ import Profile from './Pages/Profile/Profile';
 
 function App() {
   return (
-    <div className="App">
-      <div className="bg-white">
+    <div className="App dark:black">
+      <div className="bg-white dark:black">
         <Router>
           <Routes>
             <Route path="/" element={<LoginPage />} />
