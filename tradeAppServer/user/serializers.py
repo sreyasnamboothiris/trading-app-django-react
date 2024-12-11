@@ -1,54 +1,25 @@
 from rest_framework import serializers
 from .models import CustomUser
-import re
 
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('id', 'username', 'email', 'status', 'profile_picture', 'password', 'is_superuser')
-        extra_kwargs = {'password': {'write_only': True,'required':False}}
-
-    def validate_username(self, value):
-        value = value.strip()
-        if not value:
-            raise serializers.ValidationError("Username cannot be empty or just spaces.")
-        if len(value) < 5:
-            raise serializers.ValidationError("Username must be at least 5 characters long.")
-        if not value.isalnum():
-            raise serializers.ValidationError("Username should only contain alphanumeric characters.")
-        return value
-
-    def validate_email(self, value):
-        value = value.strip()
-        if not value:
-            raise serializers.ValidationError("Email cannot be empty or just spaces.")
-        
-        
-        if self.instance.email != value and User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email is already taken.")
-
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
-            raise serializers.ValidationError("Invalid email format.")
-        return value
-
-    def validate_password(self, value):
-        
-        return value
+        extra_kwargs = {'password': {'write_only': True, 'required': False}}
 
     def create(self, validated_data):
-        user = User(
-            username=validated_data['username'],
-            email=validated_data['email']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
+        # Automatically generate username from email if not provided
+        if 'username' not in validated_data:
+            email = validated_data.get('email')
+            username = email.split('@')[0]  # Generate username from email
+
+            # Check if the username is already taken
+            if CustomUser.objects.filter(username=username).exists():
+                username = f"{username}{CustomUser.objects.filter(username__startswith=username).count() + 1}"
+
+            validated_data['username'] = username
+
+        user = CustomUser(**validated_data)
+        user.set_password(validated_data['password'])  # Hash the password before saving
+        user.save()  # Save the user
         return user
-
-    def update(self, instance, validated_data):
-        instance.username = validated_data.get('username', instance.username)
-        instance.email = validated_data.get('email', instance.email)
-        instance.profile_picture = validated_data.get('profile_picture', instance.profile_picture)
-
-
-        instance.save()
-        return instance
