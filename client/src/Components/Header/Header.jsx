@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom"; // Import useLocation from react-router-dom
+import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation from react-router-dom
 
 // Import your PNG icons
 import MarketIcon from "../../assets/header/icons/market.png";
@@ -13,6 +13,8 @@ import ProfileIcon from "../../assets/header/icons/profile.png";
 import './header.css'; // Import your CSS file here
 
 function Header() {
+
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation(); // Get the current location (URL)
 
@@ -133,6 +135,7 @@ function Header() {
         </div>
 
         <div
+          onClick={()=>navigate('/user/profile')}
           className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
             isActive("/user/profile") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
           }`}
