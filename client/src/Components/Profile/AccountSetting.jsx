@@ -3,14 +3,18 @@ import ProfileIcon from '../../assets/Profle/7.png'
 import reportIcon from '../../assets/Profle/reporticon.png'
 import subIcon from '../../assets/Profle/subIcon.png'
 import supportIcon from '../../assets/Profle/supportIcon.png'
+import { useNavigate } from 'react-router-dom'
 
 function AccountSetting() {
+  const navigate = useNavigate();
   return (
     <div className='p-2 rounded'>
       <div>
         <h1 className='text-white font-bold text-xl'>Account setting & other info</h1>
         <div className="flex flex-col grid-cols-1 md:grid grid-cols-2 bg-[#2D5F8B] p-6 gap-4 rounded-xl">
-          <div className="p-8 border grid rounded-lg cursor-pointer hover:scale-105 hover:shadow-md hover:shadow-black transform transition duration-300">
+          <div className="p-8 border grid rounded-lg cursor-pointer hover:scale-105 hover:shadow-md hover:shadow-black transform transition duration-300"
+               onClick={()=>{navigate('/user/profile/edit')}}
+          >
             <div className='flex'>
               <div className='px-2'>
                 <img className='w-8 md:mt-4 mt-1' src={ProfileIcon} alt="" />
@@ -22,7 +26,9 @@ function AccountSetting() {
             </div>
           </div>
 
-          <div className="p-8 border grid rounded-lg cursor-pointer hover:scale-105 hover:shadow-md hover:shadow-black transform transition duration-300">
+          <div className="p-8 border grid rounded-lg cursor-pointer hover:scale-105 hover:shadow-md hover:shadow-black transform transition duration-300"
+               
+          >
             <div className='flex'>
               <div className='px-2'>
                 <img className='w-8 md:mt-4 mt-1' src={reportIcon} alt="" />

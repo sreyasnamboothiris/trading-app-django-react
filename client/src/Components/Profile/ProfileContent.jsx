@@ -1,5 +1,6 @@
 import React,{useEffect,useState} from 'react'
 import AccountSetting from './AccountSetting';
+import { useNavigate } from 'react-router-dom';
 
 function ProfileContent() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -10,6 +11,7 @@ function ProfileContent() {
         window.matchMedia('(prefers-color-scheme: dark)').matches)
     );
   });
+  const navigate = useNavigate();
 
   // Sync dark mode class with the `html` element
   useEffect(() => {
