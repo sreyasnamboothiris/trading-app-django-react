@@ -1,4 +1,5 @@
 import React,{useEffect,useState} from 'react'
+import AccountSetting from './AccountSetting';
 
 function ProfileContent() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -42,7 +43,7 @@ function ProfileContent() {
         
         </div>
     </div>
-    <div className='grid grid-cols-1 mt-12 md:gap-12 px-16 gap-4'>
+    <div className='grid grid-cols-1 mt-4 md:mt-12 md:gap-12 md:px-16 px-2 gap-4'>
       <div className='bg-[#1A3B5D] rounded-2xl p-6'>
       <div>
         <h1 className='text-xl text-white font-bold'>Account Name</h1>
@@ -62,8 +63,8 @@ function ProfileContent() {
         
       </div>
       </div>
-      <div className='bg-[#1A3B5D]'>
-        kjdsdgjh
+      <div className='bg-[#1A3B5D] md:rounded-[20px] md:p-8'>
+        <AccountSetting/>
       </div>
     </div>
 
