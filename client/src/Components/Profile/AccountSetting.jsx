@@ -1,4 +1,4 @@
-import React from 'react'
+import React,{useState,useEffect} from 'react'
 import ProfileIcon from '../../assets/Profle/7.png'
 import reportIcon from '../../assets/Profle/reporticon.png'
 import subIcon from '../../assets/Profle/subIcon.png'
@@ -6,7 +6,26 @@ import supportIcon from '../../assets/Profle/supportIcon.png'
 import { useNavigate } from 'react-router-dom'
 
 function AccountSetting() {
+
   const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check user's preferred mode from localStorage or system settings
+    return (
+      localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
+    );
+  });
+  // Sync dark mode class with the `html` element
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
   return (
     <div className='p-2 rounded'>
       <div>
