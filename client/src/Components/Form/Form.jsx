@@ -39,6 +39,28 @@ function Form(props) {
           {/* Email Input */}
       <div className='grid grid-cols-1 gap-10'>
         <div className='grid grid-cols-1 gap-y-12'>
+          { !isLogin && 
+        <div className="flex flex-col">
+            <div className="flex flex-row bg-[#1A3B5D] rounded-md items-center justify-center">
+            
+              <InputField
+                control={control}
+                name="username"
+                type="text"
+                placeholder="Enter your Username"
+                rules={{
+                  required: "Email is required",
+                  
+                }}
+              />
+            </div>
+            {errors.username && (
+              <span className="text-red-500 text-sm mt-1">
+                {errors.username.message}
+              </span>
+            )}
+          </div>
+          }
           <div className="flex flex-col">
             <div className="flex flex-row bg-[#1A3B5D] rounded-md items-center justify-center">
             
