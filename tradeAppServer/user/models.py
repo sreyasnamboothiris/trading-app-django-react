@@ -40,27 +40,21 @@ class CustomUser(AbstractUser):
             raise ValidationError("Invalid email format.")
 
         # Validate password
-        if len(self.password) < 8:
-            raise ValidationError("Password must be at least 8 characters long.")
-        if not any(char.isdigit() for char in self.password):
-            raise ValidationError("Password must contain at least one number.")
-        if not any(char.isalpha() for char in self.password):
-            raise ValidationError("Password must contain at least one letter.")
+        if self.password and not self.password.startswith('pbkdf2_sha256$'):
+            if len(self.password) < 8:
+                raise ValidationError("Password must be at least 8 characters long.")
+            if not any(char.isdigit() for char in self.password):
+                raise ValidationError("Password must contain at least one number.")
+            if not any(char.isalpha() for char in self.password):
+                raise ValidationError("Password must contain at least one letter.")
+
         
 
     def save(self, *args, **kwargs):
-        
-        # Automatically generate username from email if not provided
-        if not self.username:
-            self.username = self.email.split('@')[0]  # Generate username from email
-
-            # Check if the username is already taken
-            if CustomUser.objects.filter(username=self.username).exists():
-                self.username = f"{self.username}{CustomUser.objects.filter(username__startswith=self.username).count() + 1}"
-
-        if self.password:  # Hash the password before saving
+        # Hash the password only if it's not already hashed
+        if self.password:
             self.set_password(self.password)
 
-        super().save(*args, **kwargs)  # Save the instance
+        super().save(*args, **kwargs)
 
 
