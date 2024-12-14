@@ -1,0 +1,11 @@
+DEBUG 2024-12-14 12:06:35,669 views Request Data: {'email': 'sample2@gmail.com', 'password': 'Asw@1234'}
+DEBUG 2024-12-14 12:06:35,670 views Email: sample2@gmail.com, Password: Asw@1234
+DEBUG 2024-12-14 12:06:36,409 views Authenticated User: sample2
+DEBUG 2024-12-14 12:06:36,436 views Generated Tokens: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0MTU4MjU2LCJpYXQiOjE3MzQxNTgxOTYsImp0aSI6IjJjMzA2YTI5OTk4MTQ0ZDBiOWRlN2FjNGQxYWM5OWNkIiwidXNlcl9pZCI6Mn0.M7ZiHqmsi5ab-1WmXCojSOtR9FRiHeR1-oDgdksmhnM, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTczNDI0NDU5NiwiaWF0IjoxNzM0MTU4MTk2LCJqdGkiOiJjOWY3M2Q3MTZiZjY0ODQ0YjllNjlmOTFhYzc4NTE5NiIsInVzZXJfaWQiOjJ9.Rp_SU7GB1QMObEAUEgTK1x4uYxHBGoiVWRuWs6JCuEQ
+DEBUG 2024-12-14 12:13:29,798 views Request Data: {'email': 'sample2@gmail.com', 'password': 'Asw@1234'}
+DEBUG 2024-12-14 12:13:29,798 views Email: sample2@gmail.com, Password: Asw@1234
+DEBUG 2024-12-14 12:13:30,664 views Authenticated User: sample2
+DEBUG 2024-12-14 12:13:30,681 views Generated Tokens: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM0MTU4NjcwLCJpYXQiOjE3MzQxNTg2MTAsImp0aSI6ImU1MTc0ZmYyMWJmNjRmYTE4YWYxZGU1Y2JjMDFmZTk3IiwidXNlcl9pZCI6Mn0.7R4gnatfTih4YcdXzuZ1BRpIuVVU_C0e7qBbdg2fTMs, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTczNDI0NTAxMCwiaWF0IjoxNzM0MTU4NjEwLCJqdGkiOiIwODZkMzhlZjNjNmY0NDkwODIyYmMzNjhiODJiZDI5MCIsInVzZXJfaWQiOjJ9.sNrV9wnsAUYPatTYjODz_eEB6Dz0yqMdSbDxa954XEk
+DEBUG 2024-12-14 12:16:21,247 views Request Data: {'email': 'sample2@gmail.com', 'password': 'Asw@1234'}
+DEBUG 2024-12-14 12:16:21,248 views Email: sample2@gmail.com, Password: Asw@1234
+DEBUG 2024-12-14 12:16:22,016 views Authenticated User: sample2

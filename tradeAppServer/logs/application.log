@@ -1,0 +1,13 @@
+INFO 2024-12-14 10:34:19,105 Watching for file changes with StatReloader
+INFO 2024-12-14 10:34:27,272 C:\Users\sreya\Desktop\trading-app-django-react\tradeAppServer\tradeAppServer\settings.py changed, reloading.
+INFO 2024-12-14 10:34:28,315 Watching for file changes with StatReloader
+INFO 2024-12-14 10:34:31,106 C:\Users\sreya\Desktop\trading-app-django-react\tradeAppServer\tradeAppServer\settings.py changed, reloading.
+INFO 2024-12-14 10:34:32,090 Watching for file changes with StatReloader
+INFO 2024-12-14 10:34:49,326 "POST /user/login/ HTTP/1.1" 200 544
+INFO 2024-12-14 10:35:12,027 C:\Users\sreya\Desktop\trading-app-django-react\tradeAppServer\tradeAppServer\settings.py changed, reloading.
+INFO 2024-12-14 10:35:13,221 Watching for file changes with StatReloader
+INFO 2024-12-14 10:35:18,027 "POST /user/login/ HTTP/1.1" 200 544
+INFO 2024-12-14 10:35:39,979 C:\Users\sreya\Desktop\trading-app-django-react\tradeAppServer\tradeAppServer\settings.py changed, reloading.
+INFO 2024-12-14 10:35:40,961 Watching for file changes with StatReloader
+INFO 2024-12-14 10:35:44,959 "POST /user/login/ HTTP/1.1" 200 544
+INFO 2024-12-14 10:35:56,255 C:\Users\sreya\Desktop\trading-app-django-react\tradeAppServer\tradeAppServer\settings.py changed, reloading.
