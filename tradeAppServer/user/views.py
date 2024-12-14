@@ -26,7 +26,9 @@ class UserSignupView(generics.CreateAPIView):
                 {"message":"user created successfully"},
                 status = status.HTTP_201_CREATED
             )
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
@@ -53,18 +55,43 @@ class UserLoginView(APIView):
             'access':str(refresh.access_token),
             'refresh':str(refresh),
             'username':user.username,
-            'email':user.email
+            'email':user.email,
+            'user_id':user.pk
         }, status = status.HTTP_200_OK)
         
         
         
 class UserDetailView(APIView):
 
-    def get(self,requsest):
-        print('get wokring anu')
-        return Response({},status=200)
-    print('ethi')
-    pass
-Response({},status=200)
+    def get(self,requsest,pk):
+         
+        user = CustomUser.objects.get(pk=pk)
+        serializer = UserSerializers(user)
+        return Response(serializer.data,status=200)
+    
+    Response({},status=200)
 
 
+class UserRefreshTokenView(APIView):
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({
+                "error":"Refresh token is required"
+            }, status = status.HTTP_400_BAD_REQUEST)
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+
+            return Response({
+                'access':access_token
+            },status = status.HTTP_200_OK)
+        
+        except TokenError:
+            raise AuthenticationFailed('Invalid refresh token or expired.')
