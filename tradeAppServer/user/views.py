@@ -10,6 +10,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate 
 from .models import CustomUser
 from .serializers import UserSerializers
+import logging
+
+logger = logging.getLogger('user')
 
 
 
@@ -19,6 +22,7 @@ class UserSignupView(generics.CreateAPIView):
     authentication_classes = []
     
     def post(self, request):
+        logger.debug(f'my varible vleu {request.data}')
         serializer = UserSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -34,30 +38,41 @@ class UserLoginView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
     
-    def post(self,request):
-
+    def post(self, request):
+        
+        logger.debug(f"Request Data: {request.data}", extra={'file': 'request_data_file'})  # Log the request data to the 'request_data.log' file
+        
+        # Get the email and password from the request
         email = request.data.get('email')
         password = request.data.get('password')
+
+        # Log function variables to the debug file
+        logger.debug(f"Email: {email}, Password: {password}", extra={'file': 'debug_file'})  # This logs the variables in the debug.log file
+
         try:
             user = CustomUser.objects.get(email=email)
         except CustomUser.DoesNotExist:
             return Response(
-                {"error":"User with the provided email does not exist."},status = status.HTTP_404_NOT_FOUND
+                {"error": "User with the provided email does not exist."}, status=status.HTTP_404_NOT_FOUND
             )
         
-        authenticated_user = authenticate(username=user.username,password=password)
+        authenticated_user = authenticate(username=user.username, password=password)
         if authenticated_user is None:
-            raise AuthenticationFailed("Invalid email or passowrd")
+            raise AuthenticationFailed("Invalid email or password")
 
+        # Log successful authentication to the debug log
+        logger.debug(f"Authenticated User: {authenticated_user.username}", extra={'file': 'debug_file'})
+        
+        # Generate JWT token for the authenticated user
         refresh = RefreshToken.for_user(authenticated_user)
 
         return Response({
-            'access':str(refresh.access_token),
-            'refresh':str(refresh),
-            'username':user.username,
-            'email':user.email,
-            'user_id':user.pk
-        }, status = status.HTTP_200_OK)
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'username': user.username,
+            'email': user.email,
+            'user_id': user.pk
+        }, status=status.HTTP_200_OK)
         
         
         
