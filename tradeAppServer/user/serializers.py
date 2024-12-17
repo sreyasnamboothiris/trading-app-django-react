@@ -5,7 +5,7 @@ from .models import CustomUser
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'username', 'email', 'status', 'profile_picture', 'password', 'is_superuser')
+        fields = ('id','first_name','last_name', 'username', 'email', 'status', 'profile_picture', 'password', 'is_superuser')
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
             'email': {'required': True},
@@ -37,7 +37,7 @@ class UserSerializers(serializers.ModelSerializer):
             raise serializers.ValidationError("Password must contain at least one number.")
         if not any(char.isalpha() for char in value):
             raise serializers.ValidationError("Password must contain at least one letter.")
-
+    
         return value
 
     def create(self, validated_data):

@@ -27,12 +27,14 @@ function EditProfile() {
         },
       })
         .then(response => {
+          console.log(response.data)
           setUserDetails(response.data); // Set the user details from the API response
           // Populate the form with the fetched user details
-          setValue('firstName', response.data.firstName);
-          setValue('lastName', response.data.lastName);
+          setValue('first_name', response.data.first_name);
+          setValue('last_name', response.data.last_name);
           setValue('email', response.data.email);
           setValue('username', response.data.username);
+          setValue('profile_picture',response.data.profile_picture)
         })
         .catch(error => {
           console.log('error ',error);
@@ -43,8 +45,20 @@ function EditProfile() {
 
   // Handle form submission
   const onSubmit = (data) => {
-    console.log(data);
-    alert(data);
+    const user_data = JSON.parse(localStorage.getItem('userInfo'))
+    api.patch(`user/profile/edit/${user_data.user_id}/`,data, { // Replace with your backend API endpoint
+      headers: {
+        Authorization: `Bearer ${isAuth}`, // Include token in the request header
+      },
+    }).then(response => {
+      setUserDetails(response.data);
+      setValue('first_name', response.data.first_name);
+      setValue('last_name', response.data.last_name);
+      setValue('email', response.data.email);
+      setValue('username', response.data.username);
+      setValue('profile_picture',response.data.profile_picture)
+      alert('profile updated successfully')
+    })
   }
 
   useEffect(() => {
@@ -92,6 +106,7 @@ function EditProfile() {
 
                     {/* Edit button inside the image */}
                     <button
+                    type='button'
                       className="absolute"
                       onClick={handleEditClick} // Trigger file input when clicked
                     >
@@ -100,10 +115,11 @@ function EditProfile() {
 
                     {/* Hidden file input */}
                     <input
-                      id="imageInput"
+                      id="profile_picture"
                       type="file"
                       accept="image/*"
                       className="hidden"
+                      {...register('profile_picture')}
                       onChange={handleImageChange}
                     />
                   </div>
@@ -124,7 +140,7 @@ function EditProfile() {
                   <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><button type='button' className='p-1 text-lg font-bold'>Add Account</button></div>
                   <div>
                     <div>
-                      <h1>User Joined Date</h1>
+                      <h1 className='text-black'>User Joined Date</h1>
                     </div>
                     <div className='flex justify-center text-black text-lg font-semibold border border-black rounded-md'>
                       29/11/2024
@@ -142,10 +158,10 @@ function EditProfile() {
                     <label className='text-lg font-semibold text-[#002F42]' htmlFor="firstName">First Name</label>
                     <div className='grid w-24'>
                       <input
-                        id="firstName"
+                        id="first_name"
                         className='rounded-md border border-gray-300'
                         type="text"
-                        {...register('firstName', { required: 'First Name is required' })}
+                        {...register('first_name', { required: 'First Name is required' })}
                       />
                       {errors.firstName && (
                         <span className="text-red-600 text-sm">{errors.firstName.message}</span>
@@ -159,10 +175,10 @@ function EditProfile() {
                     <label className='text-lg font-semibold text-[#002F42]' htmlFor="lastName">Last Name</label>
                     <div>
                       <input
-                        id="lastName"
+                        id="last_name"
                         className='rounded-md border border-gray-300'
                         type="text"
-                        {...register('lastName', { required: 'Last Name is required' })}
+                        {...register('last_name', { required: 'Last Name is required' })}
                       />
                       {errors.lastName && (
                         <span className="text-red-600 text-sm">{errors.lastName.message}</span>

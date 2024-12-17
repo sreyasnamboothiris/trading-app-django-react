@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 
@@ -23,3 +24,14 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+
+class OTP(models.Model):
+
+    email = models.EmailField(unique=True)
+    otp = models.CharField(max_length=4)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateField()
+
+    def is_expired(self):
+        return datetime.now() > self.expires_at

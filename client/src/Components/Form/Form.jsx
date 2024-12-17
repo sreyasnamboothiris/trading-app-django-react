@@ -51,12 +51,9 @@ function Form(props) {
       // Handle sign-up similarly
       api.post('user/signup/', data)
         .then(response => {
-          toast.success('Sign Up successful!');
           
           // Wait 1 second before navigating to profile
-          setTimeout(() => {
-            navigate('user/profile/');
-          }, 1000); // 1-second delay
+          navigate('login/otp') // 1-second delay
         })
         .catch(error => {
           toast.error('Error during signup!');

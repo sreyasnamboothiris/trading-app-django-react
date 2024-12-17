@@ -65,6 +65,12 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default: Use database for sessions
+SESSION_COOKIE_SECURE = False  # Set to True only for HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Ensures cookies are not accessible via JavaScript
+SESSION_SAVE_EVERY_REQUEST = True  # Set True if session updates on every request
+SESSION_COOKIE_AGE = 180  # Duration in seconds (default is 2 weeks)
+
 
 ROOT_URLCONF = 'tradeAppServer.urls'
 
@@ -162,59 +168,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,  # Keep existing loggers active
-    'loggers': {
-        # Custom logger for 'user' app
-        'user': {
-            'handlers': ['user_console', 'debug_file', 'request_data_file'],  # Attach handlers for this app
-            'level': 'DEBUG',
-            'propagate': False,  # Prevent log propagation to the default 'django' logger
-        },
-        # Default logger for Django
-        'django': {
-            'handlers': ['console'],  # Use console handler for warnings and errors
-            'level': 'WARNING',  # Only log WARNING and ERROR messages to the console
-            'propagate': False,
-        },
-    },
-    'handlers': {
-        # Console handler for 'user' app debug messages
-        'user_console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        # File handler for logging detailed debug info
-        'debug_file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': './logs/debug.log',  # Ensure this directory exists
-            'formatter': 'detailed',
-        },
-        # File handler for logging request data
-        'request_data_file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': './logs/request_data.log',  # Separate log for request data
-            'formatter': 'detailed',
-        },
-        # Console handler for Django warnings and errors
-        'console': {
-            'level': 'WARNING',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'formatters': {
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-        'detailed': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-}
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sreyasstrader@gmail.com'
+EMAIL_HOST_PASSWORD = 'kpxn onnl yqdh rtmd'
+
 
