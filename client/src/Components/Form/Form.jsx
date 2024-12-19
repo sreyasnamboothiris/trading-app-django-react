@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import api from '../../api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import InputField from './InputField';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticated } from '../../store/authSlice';
@@ -32,14 +31,20 @@ function Form(props) {
         }
       ).then((response) => {
         // Once promise resolves successfully
-        const { access, refresh, email, username, user_id } = response.data;
+        console.log(response.data)
+        const { access, refresh, email, username, user_id, is_staff } = response.data;
         localStorage.setItem('accessToken', access);
         localStorage.setItem('refreshToken', refresh);
-        localStorage.setItem('userInfo', JSON.stringify({ email, username, user_id }));
+        localStorage.setItem('userInfo', JSON.stringify({ email, username, user_id, is_staff, access, refresh }));
+
+        console.log({access,refresh,user_id,is_staff},'this is form.jsx while after login')
+        dispatch(isAuthenticated({access,user_id,is_staff,refresh}));
   
-        dispatch(isAuthenticated(access));
-  
-        // Wait 1 second (1000ms) before navigating
+        if (is_staff){
+          setTimeout(()=>{
+            navigate('admin/')
+          },500)
+        }
         setTimeout(() => {
           navigate('user/profile/');
         }, 1000); // 1-second delay
@@ -165,9 +170,11 @@ function Form(props) {
           </form>
         </div>
       </div>
-      <ToastContainer
-      position="top-center"
-      reverseOrder={false} /> {/* Ensure ToastContainer is here */}
+      <ToastContainer position="top-center" 
+          autoClose={2000} 
+          hideProgressBar={true} 
+          newestOnTop={false} 
+          closeOnClick />
     </div>
   );
 }

@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate 
 import random
 from .models import CustomUser
-from .serializers import UserSerializers
+from .serializers import PasswordResetSerializer, UserSerializers
 
 
 
@@ -62,9 +62,6 @@ class UserSignupView(generics.CreateAPIView):
         print(request.session.items())
         return Response({'success':"vanne vanne , vannalo, mutahu maveli"},status=401)
     
-
-
-
 
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
@@ -125,10 +122,6 @@ class ResendOTPView(APIView):
         except Exception as e:
             return Response({"error": "Failed to resend OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        
-        
-        
-
 
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
@@ -164,10 +157,43 @@ class UserLoginView(APIView):
             'refresh': str(refresh),
             'username': user.username,
             'email': user.email,
-            'user_id': user.pk
+            'user_id': user.pk,
+            'is_staff':user.is_staff,
+            'status':user.status
         }, status=status.HTTP_200_OK)
+
+
+class UserRefreshTokenView(APIView):
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
         
+        refresh_token = request.data.get('refresh')
+        user_id = request.data.get('user_id')
+        print(user_id)
+        user = CustomUser.objects.get(id=user_id)
+        if not refresh_token:
+            return Response({
+                "error":"Refresh token is required"
+            }, status = status.HTTP_400_BAD_REQUEST)
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+
+            return Response({
+                'access': access_token,
+                'refresh': refresh_token,
+                'user_id': user_id,
+                'is_staff':user.is_staff,
+                'status':user.status
+            },status = status.HTTP_200_OK)
         
+        except TokenError:
+            raise AuthenticationFailed('Invalid refresh token or expired.')
+
         
 class UserDetailView(APIView):
 
@@ -186,20 +212,26 @@ class UserDetailView(APIView):
 
             if user!= request.user:
                 return Response({"error": "You are not authorized to update this profile."}, status=status.HTTP_403_FORBIDDEN)
-            updated_data = request.data
+            updated_data = request.data.copy()
             if 'email' in updated_data and updated_data['email'] == user.email:
                 del updated_data['email']
             if 'username' in updated_data and updated_data['username'] == user.username:
                 del updated_data['username']
-            serializer = UserSerializers(user, data=request.data, partial=True)
+            serializer = UserSerializers(user, data=updated_data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                print(serializer)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                data = {
+                    "message":"Successfully updated user",
+                    'data':serializer.data
+                }
+                return Response(data, status=status.HTTP_200_OK)
             else:
-                print(serializer.errors)
-            print(serializer)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                first_error_message = next(
+                    (error[0] for error in serializer.errors.values() if isinstance(error, list) and error), 
+                    "Invalid data submitted."
+                )
+                return Response({"error": first_error_message}, status=status.HTTP_400_BAD_REQUEST)
+            
         except CustomUser.DoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -208,26 +240,29 @@ class UserDetailView(APIView):
     Response({},status=200)
 
 
-class UserRefreshTokenView(APIView):
+class LogoutView(APIView):
 
-    permission_classes = [AllowAny]
-    authentication_classes = []
-
-    def post(self, request):
+    permission_classes = (IsAuthenticated,)
+    def post(self,reqeust):
         
-        refresh_token = request.data.get('refresh')
-        if not refresh_token:
-            return Response({
-                "error":"Refresh token is required"
-            }, status = status.HTTP_400_BAD_REQUEST)
-
         try:
-            refresh = RefreshToken(refresh_token)
-            access_token = str(refresh.access_token)
-
-            return Response({
-                'access':access_token
-            },status = status.HTTP_200_OK)
+            refresh_token = reqeust.data['refresh_token']
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         
-        except TokenError:
-            raise AuthenticationFailed('Invalid refresh token or expired.')
+
+class PasswordResetView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = PasswordResetSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Password updated successfully"}, status=status.HTTP_200_OK)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        

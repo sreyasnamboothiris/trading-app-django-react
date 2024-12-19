@@ -39,8 +39,15 @@ REST_FRAMEWORK = {
 }
 
 # Application definition
+SITE_ID = 1
 
 INSTALLED_APPS = [
+    'django.contrib.sites',  # Required by django-allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -48,8 +55,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'user',
     'corsheaders',
+    'mpadmin'
 ]
 
 MIDDLEWARE = [
@@ -61,6 +70,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    'user.middleware.UserStatusMiddleware'
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -105,6 +116,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tradeAppServer.wsgi.application'
 
+# Media files (User-uploaded content)
+MEDIA_URL = '/media/'  # URL to access media files in the browser
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Location to store uploaded media files
+
+# Configure the profile pictures folder inside the media directory
+PROFILE_PICS_FOLDER = 'profile_pics/'  # Subfolder inside MEDIA_ROOT for profile pictures
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -125,6 +142,7 @@ AUTH_USER_MODEL = 'user.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend'
 ]
 
 # Password validation

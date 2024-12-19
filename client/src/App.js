@@ -6,6 +6,7 @@ import Otp from './Components/Login/Otp';
 import Profile from './Pages/Profile/Profile';
 import EditProfile from './Components/Profile/EditProfile';
 import Admin from './Pages/Admin/Admin';
+import AdminEditUser from './Components/Admin/AdminEditUser';
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
             <Route path='user/profile/' element={<Profile/>}/>
             <Route path='user/profile/edit' element={<EditProfile/>}/>
             <Route path='admin/' element={<Admin/>}/>
+            <Route path='admin/user/' element={<Admin/>}/>
+            <Route path='admin/user/edit/:id' element={<AdminEditUser/>}/>
           </Routes>
         </Router>
       </div>

@@ -1,8 +1,13 @@
 import React,{useEffect,useState} from 'react'
 import AccountSetting from './AccountSetting';
 import { useNavigate } from 'react-router-dom';
+import api from '../../interceptors';
+import { useDispatch } from 'react-redux';
+import { loggedOut } from '../../store/authSlice';
+import LogoutModal from './LogoutModal';
 
 function ProfileContent() {
+  const dispatch = useDispatch();
   const [darkMode, setDarkMode] = useState(() => {
     // Check user's preferred mode from localStorage or system settings
     return (
@@ -23,6 +28,7 @@ function ProfileContent() {
       localStorage.setItem('theme', 'light');
     }
   }, [darkMode]);
+  
   return (
     <div className=''>
       <div className='w-full h-24 bg-[#2D5F8B] flex justify-between rounded-md'>
@@ -38,9 +44,7 @@ function ProfileContent() {
             <button onClick={()=>setDarkMode(!darkMode)}
              className='text-white md:font-bold md:text-lg text-sm'> {darkMode ? 'Light Mode' : 'Dark Mode'}</button>
           </div>
-          <div>
-            <button className='text-white md:font-bold md:text-lg text-sm'>Logout</button>
-          </div>
+          <LogoutModal/>
           </div>
         
         </div>

@@ -1,4 +1,5 @@
 import React from 'react'
+import LogoutModal from '../Profile/LogoutModal'
 
 function Header() {
   return (
@@ -13,7 +14,7 @@ function Header() {
                 </div>
             </div>
             <div className='cursor-pointer hidden md:text-xl text-white font-bold md:flex items-center px-12'>
-                Logout
+                <LogoutModal/>
             </div>
         </div>
     </div>
