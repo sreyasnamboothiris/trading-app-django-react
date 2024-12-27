@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id','first_name','last_name', 'username', 'email', 'status', 'profile_picture', 'password', 'is_superuser','date_joined','plan','is_staff')
+        fields = ('id','first_name','last_name', 'username', 'email', 'is_active', 'profile_picture', 'password', 'is_superuser','date_joined','plan','is_staff')
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
             'email': {'required': True},
@@ -20,10 +20,8 @@ class UserSerializers(serializers.ModelSerializer):
         return None
     
     def validate_email(self, value):
-        # Strip leading/trailing spaces
+        
         value = value.strip()
-
-        # Check if email is valid
         if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
             raise serializers.ValidationError("Invalid email format.")
 
@@ -81,15 +79,27 @@ class CurrencySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Currency
-        fields = ['id', 'name', 'symbol']
+        fields = ['id', 'name', 'symbol','is_active']
 
 
 class AccountSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Account
-        fields = ['name','currency','funds','created_at']
-        read_only_fields = ['user', 'created_at']
+        fields = ['id', 'name', 'currency', 'funds','is_active']
+
+    def validate(self, data):
+        user = self.context['request'].user
+
+        # Check if the user already has 2 accounts
+        if Account.objects.filter(user=user).count() >= 2:
+            raise serializers.ValidationError("You can create a maximum of 2 accounts.")
+
+        return data
+    
+class CurrencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Currency
+        fields = ['id', 'name', 'code']
 
 
 

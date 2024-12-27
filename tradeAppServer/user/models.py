@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator,RegexValidator,EmailValidator,FileExtensionValidator
 from django.utils.translation import gettext_lazy as _
+from mpadmin.models import Currency
 
 
 def validate_non_space_string(value):
@@ -76,7 +77,7 @@ class CustomUser(AbstractUser):
         ]
     )
 
-    status = models.BooleanField(blank=True, null=True, default=True)
+    
     dark_mode = models.BooleanField(default=True)
     plan = models.CharField(max_length=255, default='free')
     
@@ -118,12 +119,6 @@ class OTP(models.Model):
         return datetime.now() > self.expires_at
     
 
-class Currency(models.Model):
-    name = models.CharField(max_length=50,unique=True)
-    symbol = models.CharField(max_length=10,unique=True)
-
-    def __str__(self):
-        return f"{self.name} ({self.symbol})"
     
 
 class Account(models.Model):
@@ -136,7 +131,7 @@ class Account(models.Model):
         default=0.0,
         validators=[MinValueValidator(0.0, message=("Funds must be a positive amount."))]
     )
-
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):

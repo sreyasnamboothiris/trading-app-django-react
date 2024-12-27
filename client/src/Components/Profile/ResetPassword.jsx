@@ -53,7 +53,7 @@ function ResetPasswordButton() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-[#2D5F8B] border-black border-4 rounded-xl w-96">
             <div className='bg-[#002F42] w-full p-2 flex justify-center '>
-            <h2 className="text-4xl font-semibold mb-4">Reset Password</h2>
+            <h2 className="text-4xl font-semibold mb-4">Change Password</h2>
             </div>
 
             <div className="mb-4 p-6">
@@ -91,12 +91,14 @@ function ResetPasswordButton() {
 
             <div className="flex justify-between gap-4 mt-6 p-6">
               <button
+              type='button'
                 onClick={() => setShowModal(false)} // Close modal
                 className="bg-red-500 text-lg font-bold text-white rounded-lg px-4 py-2"
               >
                 Cancel
               </button>
               <button
+              type='button'
                 onClick={handlePasswordReset}
                 disabled={loading}
                 className="text-lg font-bold bg-[#002F42] text-white rounded-lg px-4 py-2"

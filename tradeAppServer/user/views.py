@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.timezone import now
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView # type: ignore
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -13,8 +14,12 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate 
 import random
-from .models import CustomUser
-from .serializers import PasswordResetSerializer, UserSerializers
+from .models import CustomUser, Account
+from mpadmin.models import Currency
+from .serializers import PasswordResetSerializer, UserSerializers, AccountSerializer, CurrencySerializer
+from rest_framework.generics import ListAPIView
+import json
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 
@@ -24,8 +29,6 @@ class UserSignupView(generics.CreateAPIView):
     authentication_classes = []
     
     def post(self, request):
-        print('signup il keri')
-
         email = request.data.get('email')
         password = request.data.get('password')
         username = request.data.get('username')
@@ -34,67 +37,60 @@ class UserSignupView(generics.CreateAPIView):
         if CustomUser.objects.filter(username=username).exists():
             return Response({"error":"Username already registered."})
        
-        otp = str(random.randint(1000, 9999))  # Generates a random number between 1000 and 9999
-        request.session['username'] = username
-        request.session['email'] = email
-        request.session['password'] = password
-        request.session['otp'] = otp
-        request.session['otp_expiry'] = (now() + timedelta(seconds=45)).timestamp()
-        # request.session.save()
-        print(request.session.items())
-        
-        request.session.set_expiry(180)
+        otp = random.randint(1000, 9999) # Generates a random number between 1000 and 9999
+        otp_expiry = (now() + timedelta(seconds=45)).timestamp()
+        userInfo = {
+            "username":username,
+            "email":email,
+            "password":password,
+            "otp":otp,
+            "otp_expiry":otp_expiry
+
+        }
         subject = "Your OTP for Signup"
         message = f"Your OTP for signup is {otp}. It is valid for 45 seconds"
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [email,'sreyasnamboothiri@gmail.com']
-
+        
         try:
             send_mail(subject, message, from_email, recipient_list)
-            return Response({"message": "OTP sent successfully. Please check your email."}, status=status.HTTP_200_OK)
+            return Response({"message": "OTP sent successfully. Please check your email.","userInfo":userInfo}, status=status.HTTP_200_OK)
  
 
         except Exception as e:
             return Response({"error": "Failed to send OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def verify_otp(self,request):
-        print('otp verification cheyan vannu')
-        print(request.session.items())
-        return Response({'success':"vanne vanne , vannalo, mutahu maveli"},status=401)
+    
     
 
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
     def post(self, request):
-        
-        otp = request.data.get('otp')
-        print(request.session.items())
-        session_username = request.session.get('username')
-        session_email = request.session.get('email')
-        session_password = request.session.get('password')
-        session_otp = request.session.get('otp')
-        otp_expiry = request.session.get('otp_expiry')
-        
-        if not all([session_email,session_username,session_password,session_otp,otp_expiry]):
-            return Response({"error":"No pending OTP validation. Please register again."})
-        
-        if otp != session_otp:
+        print(request.body)
+        user_otp = int(request.data.get('otp'))
+        userInfo = request.data['userInfo']
+        username = userInfo['username']
+        email = userInfo['email']
+        password = userInfo['password']
+        otp = userInfo['otp']
+        otp_expiry = userInfo['otp_expiry']
+        if otp != user_otp:
+            
             return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
         
         if now().timestamp() > otp_expiry:
             return Response({"error": "OTP has expired. Please register again."}, status=status.HTTP_400_BAD_REQUEST)
         
-        user_data = {
-            'username':session_username,
-            'email':session_email,
-            'password':session_password
+        user_data ={
+            'username': username,
+            'password': password,
+            'email': email
         }
         serializer = UserSerializers(data=user_data)
-        print(serializer)
+        
         if serializer.is_valid():
             user = serializer.save()
-            request.session.flush()
             return Response({"message":"OTP verified. User registered successfully."},status = status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -102,22 +98,29 @@ class VerifyOTPView(APIView):
 
 class ResendOTPView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes = []
     def post(self, request):
-        session_email = request.session.get('email')
-        
-        otp = str(random.randint(1000,9999))
-        request.session['otp'] = otp
-        request.session['otp_expiry'] = (now() + timedelta(seconds=45)).timestamp()
+        print(request.body)
+        userInfo = request.data['userInfo']
+        username = userInfo['username']
+        email = userInfo['email']
+        password = userInfo['password']
+        otp = random.randint(1000, 9999) # Generates a random number between 1000 and 9999
+        otp_expiry = (now() + timedelta(seconds=45)).timestamp()
+        userInfo = {
+            "username":username,
+            "email":email,
+            "password":password,
+            "otp":otp,
+            "otp_expiry":otp_expiry
 
+        }
         subject = "Your OTP for Signup"
-        message = f"Your new OTP is {otp}. It is valid for 1 minute."
+        message = f"Your new OTP is {otp}. It is valid for 45 minute."
         from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [session_email,'sreyasnamboothiri@gmail.com']
-
+        recipient_list = [email,'sreyasnamboothiri@gmail.com']
         try:
             send_mail(subject, message, from_email, recipient_list)
-            return Response({"message": "OTP sent successfully. Please check your email."}, status=status.HTTP_200_OK)
+            return Response({"message": "OTP sent successfully. Please check your email.","userInfo":userInfo}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": "Failed to resend OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -138,6 +141,10 @@ class UserLoginView(APIView):
         
         try:
             user = CustomUser.objects.get(email=email)
+            if user.is_active == False:
+                return Response(
+                {"error": "User has been blocked."}, status=400
+            )
         except CustomUser.DoesNotExist:
             return Response(
                 {"error": "User with the provided email does not exist."}, status=status.HTTP_404_NOT_FOUND
@@ -159,7 +166,7 @@ class UserLoginView(APIView):
             'email': user.email,
             'user_id': user.pk,
             'is_staff':user.is_staff,
-            'status':user.status
+            'status':user.is_active
         }, status=status.HTTP_200_OK)
 
 
@@ -188,7 +195,7 @@ class UserRefreshTokenView(APIView):
                 'refresh': refresh_token,
                 'user_id': user_id,
                 'is_staff':user.is_staff,
-                'status':user.status
+                'status':user.is_active
             },status = status.HTTP_200_OK)
         
         except TokenError:
@@ -200,9 +207,7 @@ class UserDetailView(APIView):
     def get(self,request,pk):
          
         user = CustomUser.objects.get(pk=pk)
-        
         serializer = UserSerializers(user)
-        print(serializer.data)
         return Response(serializer.data,status=200)
     
     def patch(self,request,pk):
@@ -266,3 +271,27 @@ class PasswordResetView(APIView):
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+
+class CreateAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = AccountSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(user=request.user)  # Associate the account with the logged-in user
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class CurrencyListView(ListAPIView):
+    permission_classes=[IsAuthenticated]
+    queryset = Currency.objects.all()
+    serializer_class = CurrencySerializer
+
+
+class AccountListView(ListAPIView):
+    queryset = Account.objects.all()
+    serializer_class = AccountSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)

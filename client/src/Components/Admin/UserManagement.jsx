@@ -17,7 +17,7 @@ function UserManagement() {
     api
       .get('mp-admin/users/', {
         headers: {
-          Authorization: `Bearer ${isAuth.access}`,
+          Authorization: `Bearer ${isAuth?isAuth.access:''}`,
           'Content-Type': 'multipart/form-data', // Ensure correct content type
         },
         params: {
@@ -111,7 +111,7 @@ function UserManagement() {
                       <p className="text-sm font-medium">{user.username}</p>
                       <p className="text-xs text-gray-400 mt-1">Joined: {user.date_joined}</p>
                     </td>
-                    <td className="px-4 py-4 text-sm">{user.status ? 'Active' : 'Blocked'}</td>
+                    <td className="px-4 py-4 text-sm">{user.is_active ? 'Active' : 'Blocked'}</td>
                     <td className="px-4 py-4 text-sm">{user.number_of_accounts}</td>
                     <td className="px-4 py-4 text-sm">{user.plan}</td>
                     <td className="px-4 py-4 text-sm">

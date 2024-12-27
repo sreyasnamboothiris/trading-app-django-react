@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 // Check for token in localStorage
 const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+console.log(userInfo)
 const initialState = {
   isAuth: userInfo || null, // If token exists, set isAuth to token; otherwise, null
 };

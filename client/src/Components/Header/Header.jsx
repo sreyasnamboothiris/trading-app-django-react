@@ -67,6 +67,7 @@ function Header() {
       </div>
         
         <div
+          onClick={()=>navigate('/home/chart/')}
           className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}
         >
           <img src={WatchlistIcon} alt="Watchlist" className="w-8 h-8 rounded" />
@@ -74,8 +75,9 @@ function Header() {
             Watchlist
           </div>
           <div
+          
             className={`absolute inset-x-0 -bottom-4 h-[3px] ${
-              isActive("/user/watchlist")
+              isActive("/home/chart/")
                 ? "bg-[#002F42] scale-x-100"
                 : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
             } transition-transform duration-500 ease-in-out origin-center`}

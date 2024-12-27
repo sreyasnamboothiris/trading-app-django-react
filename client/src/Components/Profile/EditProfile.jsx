@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import api from '../../interceptors';
 import { ToastContainer } from 'react-toastify';
 import ResetPassword from './ResetPassword';
+import AddAccountButton from './AddAccountButton';
 
 
 function EditProfile() {
@@ -41,6 +42,7 @@ function EditProfile() {
     })
       .then((response) => {
         setUserDetails(response.data);
+        console.log(response.data)
         setValue('first_name', response.data.first_name);
         setValue('last_name', response.data.last_name);
         setValue('email', response.data.email);
@@ -73,7 +75,7 @@ function EditProfile() {
     api.patch(`user/profile/edit/${userData.user_id}/`, formData, {
       headers: {
         Authorization: `Bearer ${isAuth.access}`,
-        'Content-Type': 'multipart/form-data', // Ensure correct content type
+        'Content-Type': 'multipart/form-data', // Ensure correct content type 
       },
     })
       .then((response) => {
@@ -83,10 +85,8 @@ function EditProfile() {
         
       })
       .catch((error) => {
-        
-        console.log(error)
+
         const error_message = error.response.data.error
-        console.log(error_message)
         toast.error(error_message);
         
       });
@@ -173,7 +173,7 @@ function EditProfile() {
 
                 <div className='text-white p-5 mt-6 grid gap-10 md:mt-0'>
                   <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><ResetPassword/></div>
-                  <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><button type='button' className='p-1 text-lg font-bold'>Add Account</button></div>
+                  <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><AddAccountButton/></div>
                   <div className='text-black'>
                     <div>
                       <h1>User Joined Date</h1>

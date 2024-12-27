@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import api from '../../interceptors';  // Import your axios instance
+import { Navigate, useNavigate } from "react-router-dom";
 
 function Otp() {
+  const navigate = useNavigate()
   // State for storing OTP values, initialized with an array of 4 empty strings
   const [otp, setOtp] = useState(new Array(4).fill(""));
   // State for managing the countdown timer, initialized to 45 seconds
@@ -10,6 +12,7 @@ function Otp() {
   const [disabled, setDisabled] = useState(true);
   // State for managing the success/error messages
   const [message, setMessage] = useState("");
+  const [user,setUser] = useState(null)
   
   // User's email (can be set via signup or passed as a prop)
   const [email, setEmail] = useState("user@example.com");
@@ -39,11 +42,24 @@ function Otp() {
 
     try {
       // Call the API to resend OTP
-      const response = await api.post('/user/otp/resend/', { email }); 
-      console.log(response.data.error)
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+      console.log(userInfo)
+      const response = await api.post('/user/otp/resend/',{userInfo:userInfo},{
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }); 
+      console.log(response.data.userInfo)
+      localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo));
+      
+      setUser(response.data.userInfo)
+      
+      
+      
       console.log("OTP Resent");
       setMessage("OTP has been resent. Please check your inbox.");
     } catch (error) {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
       console.error("Error resending OTP", error);
       setMessage("There was an error resending the OTP.");
     }
@@ -54,10 +70,13 @@ function Otp() {
     const enteredOtp = otp.join("");
 
     try {
-      const response = await api.post('/user/otp/verification/', { email, otp: enteredOtp });
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+      console.log(userInfo)
+      const response = await api.post('/user/otp/verification/', { email, otp: enteredOtp,userInfo:userInfo });
       setMessage(response.data.message); // Display success message
-      console.log(response.data.message)
-      console.log(response.data.error)
+      setUser(response.data.userInfo)
+      localStorage.removeItem('userInfo')
+      navigate('/')
     } catch (error) {
       console.log(error)
       setMessage("Invalid OTP or OTP has expired.");

@@ -2,11 +2,13 @@ import React,{useEffect,useState} from 'react'
 import AccountSetting from './AccountSetting';
 import { useNavigate } from 'react-router-dom';
 import api from '../../interceptors';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { loggedOut } from '../../store/authSlice';
 import LogoutModal from './LogoutModal';
 
 function ProfileContent() {
+  const [user,setUser] = useState(null)
+  const isAuth = useSelector((state) => state.auth.isAuth);
   const dispatch = useDispatch();
   const [darkMode, setDarkMode] = useState(() => {
     // Check user's preferred mode from localStorage or system settings
@@ -17,6 +19,17 @@ function ProfileContent() {
     );
   });
   const navigate = useNavigate();
+  useEffect(()=>{
+    api.get(`user/profile/${isAuth.user_id}/`)
+    .then((response)=>{
+      setUser(response.data)
+      console.log(user)
+      
+    })
+    .catch((error) => {
+            console.error('Error fetching user details:', error);
+          })
+  },[])
 
   // Sync dark mode class with the `html` element
   useEffect(() => {
@@ -35,7 +48,7 @@ function ProfileContent() {
         <div className='flex flex-col'>
           <div className='flex flex-col lg:m-6 md:m-2 m-1'>
             <h1 className='text-xl text-white font-bold'>My Account</h1>
-            <h1 className='text-lg text-white'>Firstname Secondname</h1>
+            <h1 className='text-lg text-white'>{user?user.first_name:''} {user?user.last_name:''}</h1>
           </div>
         </div>
         <div className='flex flex-row items-center md:m-2 w-[30%] '>

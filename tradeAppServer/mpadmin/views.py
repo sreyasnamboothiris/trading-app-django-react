@@ -92,12 +92,11 @@ class BlockUserView(APIView):
         user_id = reqeust.data['user_id']
         try:
             user = CustomUser.objects.get(id=user_id)
-            if user.status:
-                user.status = False
+            if user.is_active:
+                user.is_active = False
             else:
-                user.status = True
+                user.is_active = True
             user.save()
-            print(user.status)
             return Response("Successfully completed",status=status.HTTP_200_OK)
         except CustomUser.DoesNotExist:
 

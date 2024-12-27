@@ -80,13 +80,15 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default: Use database 
 SESSION_COOKIE_SECURE = False  # Set to True only for HTTPS
 SESSION_COOKIE_HTTPONLY = True  # Ensures cookies are not accessible via JavaScript
 SESSION_SAVE_EVERY_REQUEST = True  # Set True if session updates on every request
-SESSION_COOKIE_AGE = 180  # Duration in seconds (default is 2 weeks)
+SESSION_COOKIE_AGE = 240  # Duration in seconds (default is 2 weeks)
+SESSION_COOKIE_SAMESITE = None  # Allows cross-domain cookies
+CORS_ALLOW_CREDENTIALS = True
 
 
 ROOT_URLCONF = 'tradeAppServer.urls'
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,

@@ -142,7 +142,7 @@ function AdminEditUser() {
                         <h1>User Status</h1>
                       </div>
                       <div className='flex justify-center text-lg font-semibold border border-black rounded-md'>
-                        {userDetails && userDetails.status ? 'Active' : 'Block'}
+                        {userDetails && userDetails.is_active ? 'Active' : 'Block'}
                       </div>
                       </div>
                       
@@ -152,7 +152,7 @@ function AdminEditUser() {
 
                 <div className='text-white p-5 mt-6 grid gap-10 md:mt-0'>
                 { userDetails && 
-                <div className=''><BlockButton userId = {userDetails.id} userStatus={userDetails.status}/></div>}
+                <div className=''><BlockButton userId = {userDetails.id} userStatus={userDetails.is_active}/></div>}
                   {/* <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><button type='button' className='p-1 text-lg font-bold'>Add Account</button></div> */}
                   <div className='text-black'>
                     <div>
@@ -229,15 +229,10 @@ function AdminEditUser() {
                     <div>
                       <input
                         id="email"
-                        className='rounded-md border border-gray-300'
+                        className='rounded-md border border-gray-300 cursor-not-allowed'
                         type="email"
-                        {...register('email', {
-                          required: 'Email is required',
-                          pattern: {
-                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                            message: 'Please enter a valid email address',
-                          },
-                        })}
+                        {...register('email')}
+                        readOnly
                       />
                       {errors.email && (
                         <span className="text-red-600 text-sm">{errors.email.message}</span>
@@ -252,19 +247,10 @@ function AdminEditUser() {
                     <div>
                       <input
                         id="username"
-                        className='rounded-md border border-gray-300'
+                        className='rounded-md border border-gray-300 cursor-not-allowed'
                         type="text"
-                        {...register('username', {
-                          required: 'Username is required',
-                          minLength: {
-                            value: 4,
-                            message: 'Username must be at least 4 characters long',
-                          },
-                          validate: {
-                            noSpaces: (value) => value.trim() !== '' || 'Username cannot be only spaces',
-                            minLength: (value) => value.trim().length >= 4 || 'Username needs at least 4 characters',
-                          }
-                        })}
+                        {...register('username')}
+                        readOnly
                       />
                       {errors.username && (
                         <span className="text-red-600 text-sm">{errors.username.message}</span>
@@ -272,31 +258,10 @@ function AdminEditUser() {
                     </div>
                   </div>
                 </div>
-                <div className='w-56 p-2'>
-                  <div className=''>
-                    <label className='text-lg font-semibold text-[#002F42]' htmlFor="username">User name</label>
-                    <div>
-                      <input
-                        id="username"
-                        className='rounded-md border border-gray-300'
-                        type="text"
-                        {...register('username', {
-                          required: 'Username is required',
-                          minLength: {
-                            value: 4,
-                            message: 'Username must be at least 4 characters long',
-                          },
-                          validate: {
-                            noSpaces: (value) => value.trim() !== '' || 'Username cannot be only spaces',
-                            minLength: (value) => value.trim().length >= 4 || 'Username needs at least 4 characters',
-                          }
-                        })}
-                      />
-                      {errors.username && (
-                        <span className="text-red-600 text-sm">{errors.username.message}</span>
-                      )}
-                    </div>
-                  </div>
+                <div className='bg-[#2D5F8B] flex items-center justify-center w-32 h-12 rounded-lg '>
+                <button type='submit' className='flex bg-[#2D5F8B] text-lg text-white font-bold'>
+                  Save
+                </button>
                 </div>
                 <div className="mt-4">
                   <label htmlFor="role" className="text-lg font-semibold text-[#002F42]">Select Role</label>
@@ -311,9 +276,6 @@ function AdminEditUser() {
                   </select>
                 </div>
 
-                <button type='submit' className='flex rounded-md justify-center bg-[#2D5F8B] p-1 text-lg text-white font-bold'>
-                  Save
-                </button>
 
               </div>
             </div>
