@@ -67,7 +67,7 @@ class CustomUser(AbstractUser):
         upload_to='profile_pics/',
         blank=True,
         null=True,
-        default='default.user.jpg',
+        default='default_pics/default_profile_pic.png',
         validators=[
             FileExtensionValidator(
                 allowed_extensions=['jpg', 'jpeg', 'png'],
