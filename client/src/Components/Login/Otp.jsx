@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
+import api from '../../interceptors';  // Import your axios instance
+import { Navigate, useNavigate } from "react-router-dom";
 
 function Otp() {
+  const navigate = useNavigate()
   // State for storing OTP values, initialized with an array of 4 empty strings
   const [otp, setOtp] = useState(new Array(4).fill(""));
-  // State for managing the countdown timer, initialized to 30 seconds
-  const [timer, setTimer] = useState(30);
+  // State for managing the countdown timer, initialized to 45 seconds
+  const [timer, setTimer] = useState(45);
   // State to manage whether the "Resend OTP" button is disabled
   const [disabled, setDisabled] = useState(true);
+  // State for managing the success/error messages
+  const [message, setMessage] = useState("");
+  const [user,setUser] = useState(null)
+  
+  // User's email (can be set via signup or passed as a prop)
+  const [email, setEmail] = useState("user@example.com");
 
   // Function to handle changes in the OTP input fields
   const handleChange = (element, index) => {
@@ -25,10 +34,53 @@ function Otp() {
   };
 
   // Function to handle the "Resend OTP" button click
-  const handleResend = () => {
+  const handleResend = async () => {
     setOtp(new Array(4).fill("")); // Clear the OTP input fields
-    setTimer(30); // Reset the timer to 30 seconds
+    setTimer(45); // Reset the timer to 45 seconds
     setDisabled(true); // Disable the resend button again
+    setMessage(""); // Clear any previous message
+
+    try {
+      // Call the API to resend OTP
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+      console.log(userInfo)
+      const response = await api.post('/user/otp/resend/',{userInfo:userInfo},{
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }); 
+      console.log(response.data.userInfo)
+      localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo));
+      
+      setUser(response.data.userInfo)
+      
+      
+      
+      console.log("OTP Resent");
+      setMessage("OTP has been resent. Please check your inbox.");
+    } catch (error) {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+      console.error("Error resending OTP", error);
+      setMessage("There was an error resending the OTP.");
+    }
+  };
+
+  // Function to handle OTP verification
+  const handleVerifyOtp = async () => {
+    const enteredOtp = otp.join("");
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+      console.log(userInfo)
+      const response = await api.post('/user/otp/verification/', { email, otp: enteredOtp,userInfo:userInfo });
+      setMessage(response.data.message); // Display success message
+      setUser(response.data.userInfo)
+      localStorage.removeItem('userInfo')
+      navigate('/')
+    } catch (error) {
+      console.log(error)
+      setMessage("Invalid OTP or OTP has expired.");
+    }
   };
 
   // useEffect to manage the countdown timer
@@ -68,13 +120,14 @@ function Otp() {
       {/* Button to confirm the OTP submission */}
       <button
         className="mt-6 px-6 py-2 bg-[#2D5F8B] text-white font-semibold rounded hover:bg-[#1A3B5D] transition-all"
-        onClick={() => alert(`Entered OTP: ${otp.join("")}`)} // Display the entered OTP on button click
+        onClick={handleVerifyOtp} // Verify OTP on button click
       >
         Confirm
       </button>
 
       {/* Display timer or the resend button based on the timer state */}
       <div className="mt-4 text-gray-700">
+        {message && <p>{message}</p>}
         {disabled ? (
           // Show the countdown timer when the resend button is disabled
           <p>Resend OTP in {timer} seconds</p>

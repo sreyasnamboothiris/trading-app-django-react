@@ -39,8 +39,15 @@ REST_FRAMEWORK = {
 }
 
 # Application definition
+SITE_ID = 1
 
 INSTALLED_APPS = [
+    'django.contrib.sites',  # Required by django-allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -48,8 +55,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'user',
     'corsheaders',
+    'mpadmin'
 ]
 
 MIDDLEWARE = [
@@ -61,15 +70,25 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    'user.middleware.UserStatusMiddleware'
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default: Use database for sessions
+SESSION_COOKIE_SECURE = False  # Set to True only for HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Ensures cookies are not accessible via JavaScript
+SESSION_SAVE_EVERY_REQUEST = True  # Set True if session updates on every request
+SESSION_COOKIE_AGE = 240  # Duration in seconds (default is 2 weeks)
+SESSION_COOKIE_SAMESITE = None  # Allows cross-domain cookies
+CORS_ALLOW_CREDENTIALS = True
+
 
 ROOT_URLCONF = 'tradeAppServer.urls'
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -99,6 +118,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tradeAppServer.wsgi.application'
 
+# Media files (User-uploaded content)
+MEDIA_URL = '/media/'  # URL to access media files in the browser
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Location to store uploaded media files
+
+# Configure the profile pictures folder inside the media directory
+PROFILE_PICS_FOLDER = 'profile_pics/'  # Subfolder inside MEDIA_ROOT for profile pictures
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -119,6 +144,7 @@ AUTH_USER_MODEL = 'user.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend'
 ]
 
 # Password validation
@@ -162,59 +188,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,  # Keep existing loggers active
-    'loggers': {
-        # Custom logger for 'user' app
-        'user': {
-            'handlers': ['user_console', 'debug_file', 'request_data_file'],  # Attach handlers for this app
-            'level': 'DEBUG',
-            'propagate': False,  # Prevent log propagation to the default 'django' logger
-        },
-        # Default logger for Django
-        'django': {
-            'handlers': ['console'],  # Use console handler for warnings and errors
-            'level': 'WARNING',  # Only log WARNING and ERROR messages to the console
-            'propagate': False,
-        },
-    },
-    'handlers': {
-        # Console handler for 'user' app debug messages
-        'user_console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        # File handler for logging detailed debug info
-        'debug_file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': './logs/debug.log',  # Ensure this directory exists
-            'formatter': 'detailed',
-        },
-        # File handler for logging request data
-        'request_data_file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': './logs/request_data.log',  # Separate log for request data
-            'formatter': 'detailed',
-        },
-        # Console handler for Django warnings and errors
-        'console': {
-            'level': 'WARNING',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'formatters': {
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-        'detailed': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-}
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sreyasstrader@gmail.com'
+EMAIL_HOST_PASSWORD = 'kpxn onnl yqdh rtmd'
+
 

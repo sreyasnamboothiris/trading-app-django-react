@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import api from '../../api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import InputField from './InputField';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticated } from '../../store/authSlice';
@@ -22,7 +21,7 @@ function Form(props) {
 
   const onSubmit = (data) => {
     if (isLogin) {
-      // Wrap the API call with toast.promise
+      // Wrap the API call with toast.promise for login
       toast.promise(
         api.post('user/login/', data),  // Ensure API call is correct
         {
@@ -32,35 +31,47 @@ function Form(props) {
         }
       ).then((response) => {
         // Once promise resolves successfully
-        const { access, refresh, email, username, user_id } = response.data;
+        console.log(response.data);
+        const { access, refresh, email, username, user_id, is_staff } = response.data;
         localStorage.setItem('accessToken', access);
         localStorage.setItem('refreshToken', refresh);
-        localStorage.setItem('userInfo', JSON.stringify({ email, username, user_id }));
-  
-        dispatch(isAuthenticated(access));
-  
-        // Wait 1 second (1000ms) before navigating
+        localStorage.setItem('userInfo', JSON.stringify({ email, username, user_id, is_staff, access, refresh }));
+
+        dispatch(isAuthenticated({ access, user_id, is_staff, refresh }));
+
+        if (is_staff) {
+          setTimeout(() => {
+            navigate('admin/');
+          }, 500);
+        }
+
         setTimeout(() => {
           navigate('user/profile/');
-        }, 1000); // 1-second delay
+        }, 1000); // 1-second delay after login
       }).catch((error) => {
-        // You can log or handle any errors that occur here if needed
         console.error('Error during login:', error);
+        toast.error('Login failed. Please try again!');
       });
     } else {
-      // Handle sign-up similarly
-      api.post('user/signup/', data)
-        .then(response => {
-          toast.success('Sign Up successful!');
-          
-          // Wait 1 second before navigating to profile
-          setTimeout(() => {
-            navigate('user/profile/');
-          }, 1000); // 1-second delay
-        })
-        .catch(error => {
-          toast.error('Error during signup!');
-        });
+      // Handle sign-up similarly with toast for success and error
+      toast.promise(
+        api.post('user/signup/', data),
+        {
+          pending: 'Signing up...',  // Show loading message
+          success: 'Sign up successful! Please check your inbox for OTP.', // Success toast
+          error: 'Error: Sign up failed! Please try again.' // Error toast
+        }
+      ).then((response) => {
+
+        localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo));
+        toast.success('Sign up successful! Please check your inbox for OTP.');
+        setTimeout(() => {
+          navigate('login/otp'); // Navigate to OTP page after signup
+        }, 1000); // 1-second delay
+      }).catch((error) => {
+        console.error('Error during signup:', error);
+        toast.error('Error during signup! Please try again.');
+      });
     }
   };
 
@@ -75,7 +86,7 @@ function Form(props) {
             {/* Email Input */}
             <div className='grid grid-cols-1 gap-10'>
               <div className='grid grid-cols-1 gap-y-12'>
-                { !isLogin && 
+                {!isLogin &&
                   <div className="flex flex-col">
                     <div className="flex flex-row bg-[#1A3B5D] rounded-md items-center justify-center">
                       <InputField
@@ -142,7 +153,7 @@ function Form(props) {
                   )}
                 </div>
               </div>
-              {isLogin ? 
+              {isLogin ?
                 <div className='flex justify-between'>
                   <div className='flex items-center me-4'>
                     <input type="checkbox" className='rounded-[12px]' />
@@ -151,7 +162,7 @@ function Form(props) {
                   <div>
                     <a href="" className='text-black text-sm'>Forgot password</a>
                   </div>
-                </div> : 
+                </div> :
                 <div className='flex justify-between'>
                   <div className='flex items-center me-4'></div>
                 </div>
@@ -168,9 +179,11 @@ function Form(props) {
           </form>
         </div>
       </div>
-      <ToastContainer
-      position="top-center"
-      reverseOrder={false} /> {/* Ensure ToastContainer is here */}
+      <ToastContainer position="top-center"
+        autoClose={2000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick />
     </div>
   );
 }
