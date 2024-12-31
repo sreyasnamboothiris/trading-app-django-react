@@ -22,8 +22,7 @@ import json
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
-
-# Create your views here.
+##### User signup, login, logout, and token #####
 class UserSignupView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     authentication_classes = []
@@ -61,8 +60,6 @@ class UserSignupView(generics.CreateAPIView):
             return Response({"error": "Failed to send OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
-    
-
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
@@ -162,8 +159,6 @@ class UserLoginView(APIView):
         return Response({
             'access': str(refresh.access_token),
             'refresh': str(refresh),
-            'username': user.username,
-            'email': user.email,
             'user_id': user.pk,
             'is_staff':user.is_staff,
             'status':user.is_active
@@ -179,7 +174,6 @@ class UserRefreshTokenView(APIView):
         
         refresh_token = request.data.get('refresh')
         user_id = request.data.get('user_id')
-        print(user_id)
         user = CustomUser.objects.get(id=user_id)
         if not refresh_token:
             return Response({
@@ -201,14 +195,37 @@ class UserRefreshTokenView(APIView):
         except TokenError:
             raise AuthenticationFailed('Invalid refresh token or expired.')
 
+
+class LogoutView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+    def post(self,reqeust):
         
+        try:
+            refresh_token = reqeust.data['refresh_token']
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+   
+
+##### User details and accountmanagement ######        
 class UserDetailView(APIView):
 
     def get(self,request,pk):
          
         user = CustomUser.objects.get(pk=pk)
+        account = Account.objects.get(user=user,is_active=True)
+        
         serializer = UserSerializers(user)
-        return Response(serializer.data,status=200)
+        account_serializer = AccountSerializer(account)
+        data = {
+            "user":serializer.data,
+            "account":account_serializer.data
+        }
+        return Response(data,status=200)
     
     def patch(self,request,pk):
 
@@ -245,21 +262,6 @@ class UserDetailView(APIView):
     Response({},status=200)
 
 
-class LogoutView(APIView):
-
-    permission_classes = (IsAuthenticated,)
-    def post(self,reqeust):
-        
-        try:
-            refresh_token = reqeust.data['refresh_token']
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            print(e)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        
-
 class PasswordResetView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -268,30 +270,66 @@ class PasswordResetView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password updated successfully"}, status=status.HTTP_200_OK)
-        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
-class CreateAccountView(APIView):
+class AccountView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = AccountSerializer
+    queryset = Account.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        # List accounts for the logged-in user
+        accounts = self.get_queryset().filter(user=request.user)
+        serializer = self.get_serializer(accounts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        serializer = AccountSerializer(data=request.data, context={'request': request})
+        # Create a new account
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save(user=request.user)  # Associate the account with the logged-in user
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    def patch(self, request, *args, **kwargs):
+        # Handle both "switch account" and "edit account" operations
+        user = request.user
+        account_id = request.data.get("account_id")
+        if not account_id:
+            
+            return Response({"error": "Account ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            account = self.get_queryset().filter(id=account_id, user=user).first()
+            if not account:
+                return Response({"error": "Account not found."}, status=status.HTTP_404_NOT_FOUND)
+            # Determine if it's a "switch account" or "edit account" operation
+            if "is_active" in request.data and request.data.get("is_active") == True:
+                # Switch account: Deactivate all other accounts and activate the selected account
+                self.get_queryset().filter(user=user).update(is_active=False)
+                account.is_active = True
+                account.save()
+                return Response({"message": "Account switched successfully."}, status=status.HTTP_200_OK)
+            else:
+                # Edit account: Update account details
+                serializer = self.get_serializer(account, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(
+                        {"message": "Account updated successfully.", "data": serializer.data},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    print(serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+##### Others #####
 class CurrencyListView(ListAPIView):
     permission_classes=[IsAuthenticated]
     queryset = Currency.objects.all()
-    serializer_class = CurrencySerializer
-
-
-class AccountListView(ListAPIView):
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+    serializer_class = CurrencySerializer 

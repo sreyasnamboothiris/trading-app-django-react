@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../interceptors';
 import SideMenu from './SideMenu';
 import { ToastContainer } from 'react-toastify';
-import AccountTable from '../Profile/AccountTable';
+import AccountTable from '../Profile/Accounts/AccountTable';
 import { useSelector } from 'react-redux';
 import BlockButton from './BlockButton';
 

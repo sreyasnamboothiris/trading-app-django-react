@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import Header from '../Header/Header';
-import defaultImage from '../../assets/Profle/7.png';
-import AccountTable from './AccountTable';
+import Header from '../../Header/Header';
+import defaultImage from '../../../assets/Profle/7.png';
+import AccountTable from '../Accounts/AccountTable';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
-import api from '../../interceptors';
+import api from '../../../interceptors';
 import { ToastContainer } from 'react-toastify';
 import ResetPassword from './ResetPassword';
-import AddAccountButton from './AddAccountButton';
+import AddAccountButton from '../Accounts/AddAccountButton'
 
 
 function EditProfile() {
@@ -42,12 +41,11 @@ function EditProfile() {
     })
       .then((response) => {
         setUserDetails(response.data);
-        console.log(response.data)
-        setValue('first_name', response.data.first_name);
-        setValue('last_name', response.data.last_name);
-        setValue('email', response.data.email);
-        setValue('username', response.data.username);
-        setPreviewImage(response.data.profile_picture ? `http://localhost:8000/${response.data.profile_picture}` : defaultImage);
+        setValue('first_name', response.data.user.first_name);
+        setValue('last_name', response.data.user.last_name);
+        setValue('email', response.data.user.email);
+        setValue('username', response.data.user.username);
+        setPreviewImage(response.data.user.profile_picture ? `http://localhost:8000/${response.data.user.profile_picture}` : defaultImage);
       })
       .catch((error) => {
         console.error('Error fetching user details:', error);

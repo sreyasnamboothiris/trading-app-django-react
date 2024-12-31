@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import api from '../../interceptors';
+import api from '../../../interceptors';
 
 function ResetPasswordButton() {
   const [showModal, setShowModal] = useState(false);

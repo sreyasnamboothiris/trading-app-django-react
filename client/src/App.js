@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LoginPage from './Pages/Login/LoginPage';
 import Otp from './Components/Login/Otp';
 import Profile from './Pages/Profile/Profile';
-import EditProfile from './Components/Profile/EditProfile';
+import EditProfile from './Components/Profile/ProfileManagement/EditProfile';
 import Admin from './Pages/Admin/Admin';
 import AdminEditUser from './Components/Admin/AdminEditUser';
 import ChartPage from './Pages/Chart/ChartPage';

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../../Components/Header/Header';
-import ProfileContent from '../../Components/Profile/ProfileContent';
+import ProfileContent from '../../Components/Profile/ProfileManagement/ProfileContent';
 import Watchlist from '../../Components/Watchlist/Watchlist';
 import { useDispatch, useSelector } from 'react-redux'; // To access state
 import { useNavigate } from 'react-router-dom'; // For navigation

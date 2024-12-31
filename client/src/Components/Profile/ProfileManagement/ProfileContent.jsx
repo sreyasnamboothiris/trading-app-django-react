@@ -1,13 +1,14 @@
 import React,{useEffect,useState} from 'react'
 import AccountSetting from './AccountSetting';
 import { useNavigate } from 'react-router-dom';
-import api from '../../interceptors';
+import api from '../../../interceptors';
 import { useDispatch, useSelector } from 'react-redux';
-import { loggedOut } from '../../store/authSlice';
-import LogoutModal from './LogoutModal';
+import { loggedOut } from '../../../store/authSlice';
+import LogoutModal from '../LogoutModal'
 
 function ProfileContent() {
   const [user,setUser] = useState(null)
+  const [account,setAccount] = useState(null)
   const isAuth = useSelector((state) => state.auth.isAuth);
   const dispatch = useDispatch();
   const [darkMode, setDarkMode] = useState(() => {
@@ -20,10 +21,15 @@ function ProfileContent() {
   });
   const navigate = useNavigate();
   useEffect(()=>{
-    api.get(`user/profile/${isAuth.user_id}/`)
+    api.get(`user/profile/${isAuth.user_id}/`,{
+      headers:{
+        Authorization:`Bearer ${isAuth.access}`
+      }
+    })
     .then((response)=>{
-      setUser(response.data)
-      console.log(user)
+      console.log(response.data)
+      setUser(response.data.user)
+      setAccount(response.data.account)
       
     })
     .catch((error) => {
@@ -65,7 +71,7 @@ function ProfileContent() {
     <div className='grid grid-cols-1 mt-4 md:mt-12 md:gap-12 md:px-16 px-2 gap-4'>
       <div className='bg-[#1A3B5D] rounded-2xl p-6'>
       <div>
-        <h1 className='text-xl text-white font-bold'>Account Name</h1>
+        <h1 className='text-xl text-white font-bold'>{account?account.name:'Account'}</h1>
       </div>
       <div className='bg-[#2D5F8B] rounded-md'>
       <div className='md:flex grid md:flex-row justify-between'>
@@ -73,7 +79,7 @@ function ProfileContent() {
           <h1 className="text-lg text-white">
             Trading Balance
           </h1>
-          <h1 className='text-sm md:text-2xl text-white md:font-bold'>0.00</h1>
+          <h1 className='text-sm md:text-2xl text-white md:font-bold'>{account?account.funds:''}</h1>
         </div>
         <div className='bg-[#2D5F8B] text-white md:text-2xl md:p-8 p-2 rounded-md'>
             <button className='rounded px-3 bg-[#1A3B5D]'>Add Fund</button>

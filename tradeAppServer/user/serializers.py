@@ -1,3 +1,4 @@
+from decimal import Decimal
 import re
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
@@ -83,6 +84,11 @@ class CurrencySerializer(serializers.ModelSerializer):
 
 
 class AccountSerializer(serializers.ModelSerializer):
+    funds = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal("0.00")  # Ensure `min_value` is a Decimal instance
+    )
     class Meta:
         model = Account
         fields = ['id', 'name', 'currency', 'funds','is_active']
@@ -91,8 +97,9 @@ class AccountSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
 
         # Check if the user already has 2 accounts
-        if Account.objects.filter(user=user).count() >= 2:
-            raise serializers.ValidationError("You can create a maximum of 2 accounts.")
+        if not self.instance:  # `self.instance` will be `None` for create, but not for update
+            if Account.objects.filter(user=user).count() >= 2:
+                raise serializers.ValidationError("You can create a maximum of 2 accounts.")
 
         return data
     

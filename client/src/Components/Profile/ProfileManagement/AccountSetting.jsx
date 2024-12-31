@@ -1,8 +1,8 @@
 import React,{useState,useEffect} from 'react'
-import ProfileIcon from '../../assets/Profle/7.png'
-import reportIcon from '../../assets/Profle/reporticon.png'
-import subIcon from '../../assets/Profle/subIcon.png'
-import supportIcon from '../../assets/Profle/supportIcon.png'
+import ProfileIcon from '../../../assets/Profle/7.png'
+import reportIcon from '../../../assets/Profle/reporticon.png'
+import subIcon from '../../../assets/Profle/subIcon.png'
+import supportIcon from '../../../assets/Profle/supportIcon.png'
 import { useNavigate } from 'react-router-dom'
 
 function AccountSetting() {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import api from "../../interceptors";
+import api from "../../../interceptors";
+import { useSelector } from "react-redux";
 
 function AddAccountButton() {
   const [showModal, setShowModal] = useState(false);
@@ -9,10 +10,15 @@ function AddAccountButton() {
   const [funds, setFunds] = useState(0);
   const [loading, setLoading] = useState(false);
   const [currencies, setCurrencies] = useState([]);
+  const isAuth = useSelector((state)=>state.auth.isAuth)
 
   useEffect(() => {
     // Fetch available currencies from the backend
-    api.get("user/currency/list/")
+    api.get("user/currency/list/",{
+      headers:{
+        Authorization:`Bearer ${isAuth.access}`
+      }
+    })
       .then((response) => {
         setCurrencies(response.data); // Assuming API returns a list of currencies
       })
