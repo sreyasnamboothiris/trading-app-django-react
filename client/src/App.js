@@ -8,6 +8,7 @@ import EditProfile from './Components/Profile/ProfileManagement/EditProfile';
 import Admin from './Pages/Admin/Admin';
 import AdminEditUser from './Components/Admin/AdminEditUser';
 import ChartPage from './Pages/Chart/ChartPage';
+import Currency from './Pages/Admin/Currency';
 
 function App() {
   return (
@@ -23,6 +24,8 @@ function App() {
             <Route path='admin/user/' element={<Admin/>}/>
             <Route path='admin/user/edit/:id' element={<AdminEditUser/>}/>
             <Route path='home/chart/' element={<ChartPage/>} />
+
+            <Route path='admin/currency' element={<Currency/>} />
           </Routes>
         </Router>
       </div>

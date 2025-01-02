@@ -11,28 +11,22 @@ function TradingViewWidget() {
       script.type = "text/javascript";
       script.async = true;
       script.innerHTML = `
-        {
-          "width": "1200", 
-          "height": "800",  
+        { 
+          "height": 700,
+          "autosize": true,
           "symbol": "NASDAQ:AAPL",
+          "interval": "D",
           "timezone": "Etc/UTC",
           "theme": "dark",
           "style": "1",
           "locale": "en",
           "withdateranges": true,
-          "range": "YTD",
           "hide_side_toolbar": false,
           "allow_symbol_change": true,
           "calendar": false,
-          "show_popup_button": true,
-          "popup_width": "1000",
-          "popup_height": "650",
-          "hide_volume": true,
-          "support_host": "https://www.tradingview.com",
-          "show_logo": false  // Hide watermark for paid users
+          "support_host": "https://www.tradingview.com"
         }`;
-
-      container.current.appendChild(script); // Append script to container
+      container.current.appendChild(script);
     }
   }, []); // Empty dependency array ensures this runs only once when the component is mounted
 

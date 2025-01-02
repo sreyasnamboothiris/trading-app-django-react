@@ -10,13 +10,13 @@ function AddAccountButton() {
   const [funds, setFunds] = useState(0);
   const [loading, setLoading] = useState(false);
   const [currencies, setCurrencies] = useState([]);
-  const isAuth = useSelector((state)=>state.auth.isAuth)
+  const isAuth = useSelector((state) => state.auth.isAuth)
 
   useEffect(() => {
     // Fetch available currencies from the backend
-    api.get("user/currency/list/",{
-      headers:{
-        Authorization:`Bearer ${isAuth.access}`
+    api.get("user/currency/list/", {
+      headers: {
+        Authorization: `Bearer ${isAuth.access}`
       }
     })
       .then((response) => {
@@ -39,14 +39,19 @@ function AddAccountButton() {
       name: accountName,
       currency,
       funds,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${isAuth.access}`, // Add Authorization header here
+      },
     })
       .then(() => {
         toast.success("Account created successfully");
         setShowModal(false); // Close modal
       })
       .catch((error) => {
-        const errorMessage =
-          error.response?.data?.message || "Error creating account";
+        
+        const errorMessage = error.response?.data?.message?.[0] || "Error creating account";
         toast.error(errorMessage);
       })
       .finally(() => {

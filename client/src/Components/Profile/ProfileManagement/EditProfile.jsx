@@ -78,15 +78,15 @@ function EditProfile() {
     })
       .then((response) => {
         setUserDetails(response.data.data);
-        setPreviewImage('http://localhost:8000/'+response.data.data.profile_picture);
+        setPreviewImage('http://localhost:8000/' + response.data.data.profile_picture);
         toast.success(response.data.message);
-        
+
       })
       .catch((error) => {
 
         const error_message = error.response.data.error
         toast.error(error_message);
-        
+
       });
   };
 
@@ -121,11 +121,11 @@ function EditProfile() {
   return (
     <div className='mt-1 bg-[#D9D9D9] dark:bg-black'>
       <Header />
-      <ToastContainer position="top-center" 
-            autoClose={2000} 
-            hideProgressBar={true} 
-            newestOnTop={false} 
-            closeOnClick />
+      <ToastContainer position="top-center"
+        autoClose={2000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick />
       <div className='p-1 md:p-3 bg-[#DED7F8] dark:bg-black'>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className='p-2 md:p-8 bg-[#DED7F8] md:px-24 border-2 border-gray-500 rounded-md'>
@@ -135,7 +135,7 @@ function EditProfile() {
               </div>
               <div className='flex md:justify-between flex-col md:flex-row'>
                 <div className='grid grid-cols-2 gap-16'>
-                <div className="relative">
+                  <div className="relative">
                     <img
                       className="rounded-[50%] object-cover w-24 h-24"
                       src={previewImage}
@@ -156,28 +156,28 @@ function EditProfile() {
                       onChange={handleImageChange}
                     />
                   </div>
-                    
+
                   <div className='flex p-5 text-sm text-black items-end'>
                     <div>
                       <div>
                         <h1>User Plan</h1>
                       </div>
                       <div className='flex justify-center text-lg font-semibold border border-black rounded-md'>
-                        {userDetails?userDetails.plan:""}
+                        {userDetails ? userDetails.plan : ""}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className='text-white p-5 mt-6 grid gap-10 md:mt-0'>
-                  <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><ResetPassword/></div>
-                  <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><AddAccountButton/></div>
+                  <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><ResetPassword /></div>
+                  <div className='bg-[#2D5F8B] rounded-lg flex justify-center'><AddAccountButton /></div>
                   <div className='text-black'>
                     <div>
                       <h1>User Joined Date</h1>
                     </div>
                     <div className='flex justify-center text-black text-lg font-semibold border border-black rounded-md'>
-                      {userDetails?userDetails.date_joined:''
+                      {userDetails ? userDetails.date_joined : ''
                       }
                     </div>
                   </div>

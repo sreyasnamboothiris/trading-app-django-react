@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
+import SymbolSearchWidget from './SymbolSearchWidget'
 
 function Watchlist() {
-  const [isActive,setIsActive] = useState(true)
-  const [isNonactive,setIsNonactive] = useState('')
+  const [isActive, setIsActive] = useState(true)
+  const [isNonactive, setIsNonactive] = useState('')
   return (
-    <div className='md:w-40 lg:w-60 xl:w-80 bg-[#2D5F8B] p-2'>
+    <div className='md:w-40 lg:w-60 xl:w-80 bg-[#2D5F8B] p-2 flex flex-col'>
       <div className="flex flex-row">
         <div
           className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}>
@@ -13,9 +14,9 @@ function Watchlist() {
             Name
           </div>
           <div className={`absolute inset-x-0 -bottom-4 h-[3px] ${isActive
-                ? "bg-[#002F42] scale-x-100"
-                : "bg-transparent scale-x-0 group-hover:bg-black group-hover:scale-x-100"
-              } transition-transform duration-500 ease-in-out origin-center`}
+            ? "bg-[#002F42] scale-x-100"
+            : "bg-transparent scale-x-0 group-hover:bg-black group-hover:scale-x-100"
+            } transition-transform duration-500 ease-in-out origin-center`}
           ></div>
         </div>
         <div
@@ -27,11 +28,15 @@ function Watchlist() {
           <div
 
             className={`absolute inset-x-0 -bottom-4 h-[3px] ${isNonactive
-                ? "bg-[#002F42] scale-x-100"
-                : "bg-transparent scale-x-0 group-hover:bg-black group-hover:scale-x-100"
+              ? "bg-[#002F42] scale-x-100"
+              : "bg-transparent scale-x-0 group-hover:bg-black group-hover:scale-x-100"
               } transition-transform duration-500 ease-in-out origin-center`}
           ></div>
         </div>
+      </div>
+      <div className='w-full'>
+       
+        <SymbolSearchWidget />
       </div>
 
     </div>

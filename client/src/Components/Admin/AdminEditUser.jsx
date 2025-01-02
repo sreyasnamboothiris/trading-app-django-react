@@ -21,9 +21,7 @@ function AdminEditUser() {
   const isAuth = useSelector((state) => state.auth.isAuth)
   const [role, setRole] = useState('User'); 
   const {id : userId} = useParams();
-  const handleUserStatus = ()=>{
-    alert('status handle cheyanulathu')
-  }
+
   const { id } = useParams();
   useEffect(() => {
     // Fetch User Details
@@ -66,19 +64,6 @@ function AdminEditUser() {
   });
   };
 
-  const handleImageChange = (event) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setPreviewImage(e.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleEditClick = () => {
-    document.getElementById('profile_picture').click();
-  };
 
   return (
     <div>
@@ -111,20 +96,8 @@ function AdminEditUser() {
                       src={previewImage}
                       alt="Profile"
                     />
-                    <button
-                      type="button"
-                      className="absolute"
-                      onClick={handleEditClick}
-                    >
-                      <i className="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <input
-                      id="profile_picture"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
+                    
+                    
                   </div>
                     
                   <div className='flex p-5 text-sm text-black items-end'>
@@ -177,21 +150,10 @@ function AdminEditUser() {
                         id="first_name"
                         className='rounded-md border border-gray-300'
                         type="text"
-                        {...register('first_name', {
-                          required: 'First Name is required',
-                          minLength: {
-                            value: 2,
-                            message: 'First Name must be at least 2 characters long',
-                          },
-                          validate: {
-                            noSpaces: (value) => value.trim() !== '' || 'Firstname cannot be only spaces',
-                            minLength: (value) => value.trim().length >= 4 || 'Firstname needs at least 4 characters',
-                          }
-                        })}
+                        {...register('first_name')}
+                        readOnly
                       />
-                      {errors.first_name && (
-                        <span className="text-red-600 text-sm">{errors.first_name.message}</span>
-                      )}
+                      
                     </div>
                   </div>
                 </div>
@@ -204,21 +166,10 @@ function AdminEditUser() {
                         id="last_name"
                         className='rounded-md border border-gray-300'
                         type="text"
-                        {...register('last_name', {
-                          required: 'Last Name is required',
-                          minLength: {
-                            value: 2,
-                            message: 'Last Name must be at least 1 characters long',
-                          },
-                          validate: {
-                            noSpaces: (value) => value.trim() !== '' || 'Lastname cannot be only spaces',
-                            minLength: (value) => value.trim().length >= 2 || 'Lastname needs at least 2 character',
-                          }
-                        })}
+                        {...register('last_name')}
+                        readOnly
                       />
-                      {errors.last_name && (
-                        <span className="text-red-600 text-sm">{errors.last_name.message}</span>
-                      )}
+                      
                     </div>
                   </div>
                 </div>
