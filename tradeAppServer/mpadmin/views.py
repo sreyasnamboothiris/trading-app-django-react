@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView
 from user.models import CustomUser
 from user.serializers import UserSerializers
+from .models import Currency
+from .serializers import CurrencySerializer
 
 
 
@@ -101,3 +103,14 @@ class BlockUserView(APIView):
         except CustomUser.DoesNotExist:
 
             return Response("failed",status=status.HTTP_404_NOT_FOUND)
+
+
+class CurrencyListView(APIView):
+    permission_classes = [IsAdminUser]
+    
+    
+    def get(self, request):
+        currencies = Currency.objects.all()
+        serializer = CurrencySerializer(currencies, many=True)
+        
+        return Response(serializer.data)

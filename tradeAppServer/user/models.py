@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator,RegexValidator,EmailValidator,FileExtensionValidator
 from django.utils.translation import gettext_lazy as _
 from mpadmin.models import Currency
+from django.utils.timezone import now
 
 
 def validate_non_space_string(value):
@@ -107,7 +108,19 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
-    
+
+
+class TemporaryUser(models.Model):
+    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=150, unique=True)
+    password = models.CharField(max_length=128)
+    otp = models.IntegerField()
+    otp_expiry = models.DateTimeField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_otp_expired(self):
+        return now() > self.otp_expiry
 
 class OTP(models.Model):
 

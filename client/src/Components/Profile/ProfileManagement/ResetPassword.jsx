@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../../interceptors';
+import { useSelector } from 'react-redux';
 
 function ResetPasswordButton() {
   const [showModal, setShowModal] = useState(false);
@@ -8,34 +9,59 @@ function ResetPasswordButton() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const isAuth = useSelector((state)=>state.auth.isAuth)
   const handlePasswordReset = () => {
     if (newPassword !== confirmPassword) {
-      toast.error('New passwords do not match');
+      toast.error("New passwords do not match");
       return;
     }
-    
+  
     setLoading(true);
-
-    const userData = JSON.parse(localStorage.getItem('userInfo'));
-    
-    api.post('user/password/reset/', {
-      user_id: userData.user_id,
-      old_password: oldPassword,
-      new_password: newPassword,
-      confirm_password:confirmPassword,
-    })
-      .then((response) => {
-        toast.success('Password successfully changed');
+  
+    const userData = JSON.parse(localStorage.getItem("userInfo"));
+  
+    api
+      .post("user/password/reset/", {
+        user_id: userData.user_id,
+        old_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      },{
+        headers: {
+          Authorization: `Bearer ${isAuth.access}`, // Add Authorization header here
+        },
+      }
+    )
+      .then(() => {
+        toast.success("Password successfully changed");
         setShowModal(false); // Close the modal after successful change
       })
       .catch((error) => {
-        toast.error('Error resetting password');
+        // Check if there are validation errors in the response
+        if (error.response?.data) {
+          const errors = error.response.data;
+          
+          Object.entries(errors).forEach(([key, value]) => {
+            // If the error message is an array, display each error individually
+            if (Array.isArray(value)) {
+              value.forEach((msg) => toast.error(msg));
+            } else if (typeof value === "object" && value.message) {
+              // For structured error objects
+              toast.error(value.message);
+            } else {
+              // For direct error messages
+              toast.error(value);
+            }
+          });
+        } else {
+          toast.error("An unexpected error occurred.");
+        }
       })
       .finally(() => {
         setLoading(false);
       });
   };
+  
 
   return (
     <div>

@@ -6,23 +6,26 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 function LoginPage() {
 
-  const [isSignup,setSignup] = useState(true)
+  const [isSignup, setSignup] = useState(true)
   const isAuth = useSelector(state => state.auth.isAuth);
   const navigate = useNavigate()
   const location = useLocation()
 
-  useEffect(()=>{
-    if(isAuth){
+  useEffect(() => {
+    if (isAuth) {
+      if (isAuth.is_staff) {
+        navigate('/admin/')
+      }
       const previousUrl = location.state?.from || '/home/';
       navigate(previousUrl)
       console.log('redirect to homepage')
     }
-  },[isAuth,navigate,location.state])
+  }, [isAuth, navigate, location.state])
 
   return (
     <div className='flex flex-col'>
-      
-      <Login/>
+
+      <Login />
 
     </div>
   )

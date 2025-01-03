@@ -14,14 +14,17 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate 
 import random
-from .models import CustomUser, Account
+from .models import CustomUser, Account, TemporaryUser
 from mpadmin.models import Currency
 from .serializers import PasswordResetSerializer, UserSerializers, AccountSerializer, CurrencySerializer
 from rest_framework.generics import ListAPIView
 import json
-from rest_framework_simplejwt.authentication import JWTAuthentication
+import os
+from dotenv import load_dotenv
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
-
+load_dotenv()
 ##### User signup, login, logout, and token #####
 class UserSignupView(generics.CreateAPIView):
     permission_classes = [AllowAny]
@@ -37,27 +40,36 @@ class UserSignupView(generics.CreateAPIView):
             return Response({"error":"Username already registered."})
        
         otp = random.randint(1000, 9999) # Generates a random number between 1000 and 9999
-        otp_expiry = (now() + timedelta(seconds=45)).timestamp()
-        userInfo = {
-            "username":username,
-            "email":email,
-            "password":password,
-            "otp":otp,
-            "otp_expiry":otp_expiry
-
-        }
-        subject = "Your OTP for Signup"
-        message = f"Your OTP for signup is {otp}. It is valid for 45 seconds"
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [email,'sreyasnamboothiri@gmail.com']
-        
+        otp_expiry = now() + timedelta(seconds=45)
+        temp_user, created = TemporaryUser.objects.update_or_create(
+            email=email,
+            defaults={
+                'username':username,
+                'password':password,
+                'otp':otp,
+                'otp_expiry':otp_expiry
+                }
+            )
+        message = Mail(
+            from_email = 'sreyassweb@gmail.com',
+            to_emails = email,
+            subject='the mail',
+            html_content='<strong>and easy to do anywhere, even with Python</strong>'
+            )
         try:
-            send_mail(subject, message, from_email, recipient_list)
-            return Response({"message": "OTP sent successfully. Please check your email.","userInfo":userInfo}, status=status.HTTP_200_OK)
- 
-
+            print(email)
+            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+            print(os.environ.get('SENDGRID_API_KEY'),'PRINTING KEY')
+            response = sg.send(message)
+            print(response.status_code,'printing response.status code')
+            print(response.body,'print body')
+            print(response.headers,'print headers')
+            return Response({},status=200)
         except Exception as e:
-            return Response({"error": "Failed to send OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(str(e),'printing')
+            return Response({},status=500)
+        
+ 
 
     
 class VerifyOTPView(APIView):
@@ -217,7 +229,11 @@ class UserDetailView(APIView):
     def get(self,request,pk):
          
         user = CustomUser.objects.get(pk=pk)
-        account = Account.objects.get(user=user,is_active=True)
+        try:
+            
+            account = Account.objects.get(user=user,is_active=True)
+        except:
+            pass
         
         serializer = UserSerializers(user)
         account_serializer = AccountSerializer(account)
