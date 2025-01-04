@@ -31,9 +31,10 @@ class UserSignupView(generics.CreateAPIView):
     authentication_classes = []
     
     def post(self, request):
+        username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
-        username = request.data.get('username')
+        
         if CustomUser.objects.filter(email=email).exists():
             return Response({"error": "Email already registered."}, status=status.HTTP_400_BAD_REQUEST)
         if CustomUser.objects.filter(username=username).exists():
@@ -52,87 +53,94 @@ class UserSignupView(generics.CreateAPIView):
             )
         message = Mail(
             from_email = 'sreyassweb@gmail.com',
-            to_emails = email,
-            subject='the mail',
-            html_content='<strong>and easy to do anywhere, even with Python</strong>'
-            )
+            to_emails = [email,'sreyasstrader@gmail.com'],
+            subject='Your OTP',
+             html_content = (
+                f"<strong>Hi,</strong><br>"
+                f"This mail is for the verification of MoneyMinder.<br>"
+                f"Your OTP is: <strong>{otp}</strong>.<br>"
+                f"Use it to complete your task."
+            ))
         try:
-            print(email)
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-            print(os.environ.get('SENDGRID_API_KEY'),'PRINTING KEY')
             response = sg.send(message)
-            print(response.status_code,'printing response.status code')
-            print(response.body,'print body')
-            print(response.headers,'print headers')
+            print(response)
             return Response({},status=200)
         except Exception as e:
             print(str(e),'printing')
             return Response({},status=500)
         
- 
-
-    
-class VerifyOTPView(APIView):
+   
+class VerifyOtpView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
-    def post(self, request):
-        print(request.body)
-        user_otp = int(request.data.get('otp'))
-        userInfo = request.data['userInfo']
-        username = userInfo['username']
-        email = userInfo['email']
-        password = userInfo['password']
-        otp = userInfo['otp']
-        otp_expiry = userInfo['otp_expiry']
-        if otp != user_otp:
-            
-            return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if now().timestamp() > otp_expiry:
-            return Response({"error": "OTP has expired. Please register again."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        user_data ={
-            'username': username,
-            'password': password,
-            'email': email
-        }
-        serializer = UserSerializers(data=user_data)
-        
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({"message":"OTP verified. User registered successfully."},status = status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
 
-class ResendOTPView(APIView):
-    permission_classes = [AllowAny]
     def post(self, request):
-        print(request.body)
-        userInfo = request.data['userInfo']
-        username = userInfo['username']
-        email = userInfo['email']
-        password = userInfo['password']
-        otp = random.randint(1000, 9999) # Generates a random number between 1000 and 9999
-        otp_expiry = (now() + timedelta(seconds=45)).timestamp()
-        userInfo = {
-            "username":username,
-            "email":email,
-            "password":password,
-            "otp":otp,
-            "otp_expiry":otp_expiry
+        email = request.data.get('email')
+        otp = request.data.get('otp')
 
-        }
-        subject = "Your OTP for Signup"
-        message = f"Your new OTP is {otp}. It is valid for 45 minute."
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [email,'sreyasnamboothiri@gmail.com']
+        # Check if the user exists in TemporaryUser
         try:
-            send_mail(subject, message, from_email, recipient_list)
-            return Response({"message": "OTP sent successfully. Please check your email.","userInfo":userInfo}, status=status.HTTP_200_OK)
+            temp_user = TemporaryUser.objects.get(email=email)
+        except TemporaryUser.DoesNotExist:
+            return Response({"error": "Temporary user not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Validate OTP
+        if temp_user.otp != otp:
+            return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+        if now() > temp_user.otp_expiry:
+            return Response({"error": "OTP expired."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Create the permanent user
+        user = CustomUser.objects.create_user(
+            username=temp_user.username,
+            email=temp_user.email,
+            password=temp_user.password
+        )
+        # Cleanup the TemporaryUser instance
+        temp_user.delete()
+
+        return Response({"message": "OTP verified and user created successfully."}, status=status.HTTP_201_CREATED)
+        
+
+class ResendOtpView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        email = request.data.get('email')
+        
+        # Check if the user exists in TemporaryUser
+        try:
+            temp_user = TemporaryUser.objects.get(email=email)
+        except TemporaryUser.DoesNotExist:
+            return Response({"error": "Temporary user not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Generate a new OTP and update the user
+        otp = random.randint(1000, 9999)
+        otp_expiry = now() + timedelta(seconds=45)
+        temp_user.otp = otp
+        temp_user.otp_expiry = otp_expiry
+        temp_user.save()
+
+        # Resend the OTP via email
+        message = Mail(
+            from_email='sreyassweb@gmail.com',
+            to_emails=[email],
+            subject='Resend OTP',
+            html_content=(
+                f"<strong>Hi,</strong><br>"
+                f"This mail is for the verification of MoneyMinder.<br>"
+                f"Your OTP is: <strong>{otp}</strong>.<br>"
+                f"Use it to complete your task."
+            ))
+        try:
+            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+            sg.send(message)
+            return Response({"message": "OTP resent successfully."}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error": "Failed to resend OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(str(e))
+            return Response({"error": "Failed to send OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserLoginView(APIView):

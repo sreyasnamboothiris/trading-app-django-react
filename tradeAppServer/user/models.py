@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+import re
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.exceptions import ValidationError
@@ -14,6 +15,20 @@ def validate_non_space_string(value):
     if not value or value.strip() == "":
         raise ValidationError(_("This field cannot contain only spaces. Please enter a valid value."))
 
+def validate_password(value):
+    """
+    Custom validator for password strength.
+    """
+    if len(value) < 6:
+        raise ValidationError(_("Password must be at least 6 characters long."))
+    if not re.search(r'[A-Z]', value):
+        raise ValidationError(_("Password must contain at least one uppercase letter."))
+    if not re.search(r'[a-z]', value):
+        raise ValidationError(_("Password must contain at least one lowercase letter."))
+    if not re.search(r'\d', value):
+        raise ValidationError(_("Password must contain at least one number."))
+    if not re.search(r'[!@#$%^&*(),.?\":{}|<>]', value):
+        raise ValidationError(_("Password must contain at least one special symbol."))
 
 class CustomUser(AbstractUser):
     # Custom username validation: Alphanumeric and underscores only
@@ -111,9 +126,30 @@ class CustomUser(AbstractUser):
 
 
 class TemporaryUser(models.Model):
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, unique=True)
-    password = models.CharField(max_length=128)
+    email = models.EmailField(
+        unique=True,
+        validators=[
+            EmailValidator(message=_("Please enter a valid email address."))
+        ],
+        error_messages={"unique": _("This email address is already registered.")}
+    )
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex=r'^\w+$',
+                message=_("Username can only contain letters, numbers, and underscores.")
+            ),
+            validate_non_space_string
+        ],
+        error_messages={"unique": _("This username is already taken.")}
+    )
+
+    password = models.CharField(
+        max_length=128,
+        validators=[validate_password]  # Add custom password validator
+    )
     otp = models.IntegerField()
     otp_expiry = models.DateTimeField()
 
@@ -121,6 +157,7 @@ class TemporaryUser(models.Model):
 
     def is_otp_expired(self):
         return now() > self.otp_expiry
+
 
 class OTP(models.Model):
 
