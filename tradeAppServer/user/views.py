@@ -86,7 +86,7 @@ class VerifyOtpView(APIView):
             return Response({"error": "Temporary user not found."}, status=status.HTTP_404_NOT_FOUND)
         
         # Validate OTP
-        if temp_user.otp != otp:
+        if temp_user.otp != int(otp):
             return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
         if now() > temp_user.otp_expiry:
             return Response({"error": "OTP expired."}, status=status.HTTP_400_BAD_REQUEST)
@@ -184,7 +184,6 @@ class UserLoginView(APIView):
             'status':user.is_active
         }, status=status.HTTP_200_OK)
 
-
 class UserRefreshTokenView(APIView):
 
     permission_classes = [AllowAny]
@@ -215,7 +214,6 @@ class UserRefreshTokenView(APIView):
         except TokenError:
             raise AuthenticationFailed('Invalid refresh token or expired.')
 
-
 class LogoutView(APIView):
 
     permission_classes = (IsAuthenticated,)
@@ -230,7 +228,6 @@ class LogoutView(APIView):
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
    
-
 ##### User details and accountmanagement ######        
 class UserDetailView(APIView):
 
