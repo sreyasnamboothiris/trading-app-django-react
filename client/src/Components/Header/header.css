@@ -1,0 +1,5 @@
+/* header.css */
+.icon-active img {
+    border-bottom: 2px solid white; /* Underline the icon when active */
+  }
+  

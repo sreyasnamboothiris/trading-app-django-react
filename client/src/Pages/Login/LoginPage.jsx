@@ -1,21 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import React from 'react'
 import Login from '../../Components/Login/Login'
+import { useSelector } from 'react-redux'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 function LoginPage() {
-  const [isSignup,setSignup] = useState(true)
+
+  const [isSignup, setSignup] = useState(true)
+  const isAuth = useSelector(state => state.auth.isAuth);
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (isAuth) {
+      if (isAuth.is_staff) {
+        navigate('/admin/')
+      }
+      const previousUrl = location.state?.from || '/home/';
+      navigate(previousUrl)
+      console.log('redirect to homepage')
+    }
+  }, [isAuth, navigate, location.state])
+
   return (
     <div className='flex flex-col'>
-      <div className='flex justify-center p-4 text-black'>
-      <h1 className='text-4xl font-bold'>Welcome</h1>
-      </div>
-      <div className='flex justify-center'>
-      <p className="text-black font-semibold text-xl">
-        {isSignup ? 'Please sign up to create your account' : 'Please login to continue'}
-      </p>
-      </div>
-      <Login/>
-      
+
+      <Login />
+
     </div>
   )
 }

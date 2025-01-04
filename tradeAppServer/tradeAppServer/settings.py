@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,16 +29,36 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
 # Application definition
+SITE_ID = 1
 
 INSTALLED_APPS = [
+    'django.contrib.sites',  # Required by django-allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'user',
+    'corsheaders',
+    'mpadmin'
 ]
 
 MIDDLEWARE = [
@@ -47,9 +69,36 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    'user.middleware.UserStatusMiddleware'
 ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default: Use database for sessions
+SESSION_COOKIE_SECURE = False  # Set to True only for HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Ensures cookies are not accessible via JavaScript
+SESSION_SAVE_EVERY_REQUEST = True  # Set True if session updates on every request
+SESSION_COOKIE_AGE = 240  # Duration in seconds (default is 2 weeks)
+SESSION_COOKIE_SAMESITE = None  # Allows cross-domain cookies
+CORS_ALLOW_CREDENTIALS = True
+
 
 ROOT_URLCONF = 'tradeAppServer.urls'
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+
 
 TEMPLATES = [
     {
@@ -69,17 +118,34 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tradeAppServer.wsgi.application'
 
+# Media files (User-uploaded content)
+MEDIA_URL = '/media/'  # URL to access media files in the browser
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Location to store uploaded media files
+
+# Configure the profile pictures folder inside the media directory
+PROFILE_PICS_FOLDER = 'profile_pics/'  # Subfolder inside MEDIA_ROOT for profile pictures
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'tradingapp', 
+        'USER': 'postgres',     
+        'PASSWORD': 'Sre@8281', 
+        'HOST': 'localhost',        
+        'PORT': '5432',            
     }
 }
 
+AUTH_USER_MODEL = 'user.CustomUser'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend'
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -121,3 +187,15 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sreyasstrader@gmail.com'
+EMAIL_HOST_PASSWORD = 'kpxn onnl yqdh rtmd'
+
+
