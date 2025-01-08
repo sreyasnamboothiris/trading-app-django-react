@@ -86,13 +86,13 @@ function Otp() {
       >
         Confirm
       </button>
-      <div className="mt-4 text-gray-700">
-        {message && <p>{message}</p>}
+      <div className="mt-4 text-gray-700 flex flex-col">
+        {message && <p className="p-2">{message}</p>}
         {timer > 0 ? (
           <p>Resend OTP in {timer}s</p>
         ) : (
           <button
-            className="mt-4 px-6 py-2 bg-[#1A3B5D] text-white font-semibold rounded hover:bg-[#2D5F8B] transition-all"
+            className="text-[#2D5F8B] font-semibold rounded transition-all"
             onClick={handleResend}
             disabled={disabled}
           >

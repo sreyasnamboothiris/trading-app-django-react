@@ -22,5 +22,7 @@ urlpatterns = [
 
     ## other details
     path('currency/list/', views.CurrencyListView.as_view(), name='currency-list'),
+    path('api/test/',views.TestApi.as_view()),
+    
     
 ]

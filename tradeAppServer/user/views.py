@@ -65,7 +65,7 @@ class UserSignupView(generics.CreateAPIView):
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
             response = sg.send(message)
             print(response)
-            return Response({},status=200)
+            return Response({"email":email},status=200)
         except Exception as e:
             print(str(e),'printing')
             return Response({},status=500)
@@ -137,7 +137,7 @@ class ResendOtpView(APIView):
         try:
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
             sg.send(message)
-            return Response({"message": "OTP resent successfully."}, status=status.HTTP_200_OK)
+            return Response({"message": "OTP resent successfully.","email":email}, status=status.HTTP_200_OK)
         except Exception as e:
             print(str(e))
             return Response({"error": "Failed to send OTP."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -354,3 +354,35 @@ class CurrencyListView(ListAPIView):
     permission_classes=[IsAuthenticated]
     queryset = Currency.objects.all()
     serializer_class = CurrencySerializer 
+
+
+class TestApi(APIView):
+    permission_classes=[AllowAny]
+
+    def get(self, request):
+        # Example logic for GET request
+        data = {}
+        return Response({"email":'email@gmail.com'},status=200)
+
+    def post(self, request):
+        # Example logic for POST request
+        # You can get data sent in the request using `request.data`
+        data = request.data
+        print(data)
+        # Perform some action with the data, for example:
+        data['message'] = 'Data received successfully!'
+        return Response({"message": "OTP resent successfully.","email":"sample@gmail.com"}, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        # Example logic for PUT request (typically used to update resources)
+        data = request.data
+        # Update resource with the provided data
+        data['message'] = 'Data has been updated!'
+        return Response(data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        # Example logic for PATCH request (typically used for partial updates)
+        data = request.data
+        # Perform partial update to resource
+        data['message'] = 'Data has been partially updated!'
+        return Response(data, status=status.HTTP_200_OK)
