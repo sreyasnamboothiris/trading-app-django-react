@@ -1,32 +1,15 @@
-import React, { useEffect, useRef, memo } from 'react';
+import React from 'react';
 
 function SymbolSearchWidget() {
-  const container = useRef();
-
-  useEffect(() => {
-    if (container.current && container.current.children.length === 0) {
-      const script = document.createElement("script");
-      script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-search.js";
-      script.type = "text/javascript";
-      script.async = true;
-      script.innerHTML = `
-        {
-          "width": "100%",
-          "height": "50",
-          "locale": "en",
-          "theme": "dark"
-        }`;
-      container.current.appendChild(script);
-    }
-  }, []); // Run only once when the component mounts
-
   return (
-    <div
-      className="tradingview-widget-container"
-      ref={container}
-      style={{ width: '100%', height: '50px' }}
-    />
+    <div className="mt-4">
+      <input
+        type="text"
+        placeholder="Search stocks & index"
+        className="w-full p-2 bg-white border border-gray-300 rounded-2xl mt-1 md:mt-2 lg:mt-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+    </div>
   );
 }
 
-export default memo(SymbolSearchWidget);
+export default SymbolSearchWidget;

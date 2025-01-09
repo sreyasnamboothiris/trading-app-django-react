@@ -5,8 +5,8 @@ urlpatterns = [
 
     ## for signup,login 
     path('signup/',views.UserSignupView.as_view()), # for signup
-    path('otp/verification/',views.VerifyOTPView.as_view()),
-    path('otp/resend/',views.ResendOTPView.as_view()),
+    path('otp/verification/',views.VerifyOtpView.as_view()),
+    path('otp/resend/',views.ResendOtpView.as_view()),
     path('login/',views.UserLoginView.as_view()),
     path('token/refresh/',views.UserRefreshTokenView.as_view()),
     path('logout/',views.LogoutView.as_view()),
@@ -22,5 +22,7 @@ urlpatterns = [
 
     ## other details
     path('currency/list/', views.CurrencyListView.as_view(), name='currency-list'),
+    path('api/test/',views.TestApi.as_view()),
+    
     
 ]

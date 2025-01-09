@@ -1,10 +1,18 @@
 from decimal import Decimal
+from django.core.validators import validate_email
 import re
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import CustomUser, Currency, Account
+from .models import CustomUser, Currency, Account, TemporaryUser
 from django.core.exceptions import ValidationError
 
+
+def validate_non_space_string(value):
+    # Check if the string contains only spaces
+    if not value or value.strip() == "":
+        raise ValidationError(_("This field cannot contain only spaces. Please enter a valid value."))
+    
 
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
@@ -177,3 +185,6 @@ class PasswordResetSerializer(serializers.Serializer):
         user.set_password(self.validated_data['new_password'])
         user.save()
         return user
+
+
+

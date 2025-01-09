@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import api from '../../api';
@@ -7,11 +7,14 @@ import 'react-toastify/dist/ReactToastify.css';
 import InputField from './InputField';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticated } from '../../store/authSlice';
+import Otp from './Otp'; // Import your OTP modal component
+
 
 function Form(props) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isLogin = props.signupStatus;
+  const [showModal, setShowModal] = useState(false);
 
   const {
     control,
@@ -55,7 +58,7 @@ function Form(props) {
     } else {
       // Handle sign-up similarly with toast for success and error
       toast.promise(
-        api.post('user/signup/', data),
+        api.post('user/api/test/', data),
         {
           pending: 'Signing up...',  // Show loading message
           success: 'Sign up successful! Please check your inbox for OTP.', // Success toast
@@ -63,11 +66,9 @@ function Form(props) {
         }
       ).then((response) => {
 
-        localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo));
+        localStorage.setItem('email', response.data.email);
         toast.success('Sign up successful! Please check your inbox for OTP.');
-        setTimeout(() => {
-          navigate('login/otp'); // Navigate to OTP page after signup
-        }, 1000); // 1-second delay
+        setShowModal(true); // Show the OTP modal
       }).catch((error) => {
         console.error('Error during signup:', error);
         toast.error('Error during signup! Please try again.');
@@ -153,7 +154,7 @@ function Form(props) {
                   )}
                 </div>
               </div>
-              {isLogin ?
+              {isLogin ? 
                 <div className='flex justify-between'>
                   <div className='flex items-center me-4'>
                     <input type="checkbox" className='rounded-[12px]' />
@@ -179,13 +180,30 @@ function Form(props) {
           </form>
         </div>
       </div>
+
       <ToastContainer position="top-center"
         autoClose={2000}
         hideProgressBar={true}
         newestOnTop={false}
         closeOnClick />
+        
+      {/* Modal to display OTP */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-2 rounded-md max-w-sm w-full">
+            <Otp />
+            <button
+              onClick={() => setShowModal(false)} // Close the modal when clicked
+              className="mt-4 w-full py-2 bg-red-500 text-white font-bold rounded-md hover:bg-red-600 transition"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default Form;
+
