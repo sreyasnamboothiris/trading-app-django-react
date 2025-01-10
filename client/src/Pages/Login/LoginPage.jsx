@@ -12,6 +12,7 @@ function LoginPage() {
   const location = useLocation()
 
   useEffect(() => {
+    console.log(isAuth)
     if (isAuth) {
       if (isAuth.is_staff) {
         navigate('/admin/')

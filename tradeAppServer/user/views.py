@@ -64,7 +64,6 @@ class UserSignupView(generics.CreateAPIView):
         try:
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
             response = sg.send(message)
-            print(response)
             return Response({"email":email},status=200)
         except Exception as e:
             print(str(e),'printing')
@@ -77,8 +76,9 @@ class VerifyOtpView(APIView):
 
     def post(self, request):
         email = request.data.get('email')
-        otp = request.data.get('otp')
-
+        otp = request.data.get('enteredOtp')
+        print(request.data)
+        print(email,otp)
         # Check if the user exists in TemporaryUser
         try:
             temp_user = TemporaryUser.objects.get(email=email)
@@ -90,7 +90,7 @@ class VerifyOtpView(APIView):
             return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
         if now() > temp_user.otp_expiry:
             return Response({"error": "OTP expired."}, status=status.HTTP_400_BAD_REQUEST)
-
+        print(temp_user)
         # Create the permanent user
         user = CustomUser.objects.create_user(
             username=temp_user.username,
