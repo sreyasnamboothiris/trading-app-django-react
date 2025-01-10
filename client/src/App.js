@@ -17,7 +17,7 @@ function App() {
         autoClose={1000}
         hideProgressBar={true}
         newestOnTop={false}
-        closeOnClick />` `
+        closeOnClick />
       <div className="bg-white k:black">
         <Router>
           <Routes>

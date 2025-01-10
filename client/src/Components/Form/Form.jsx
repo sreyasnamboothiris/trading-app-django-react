@@ -58,16 +58,15 @@ function Form(props) {
     } else {
       // Handle sign-up similarly with toast for success and error
       toast.promise(
-        api.post('user/api/test/', data),
+        api.post('user/signup/', data),
         {
           pending: 'Signing up...',  // Show loading message
           success: 'Sign up successful! Please check your inbox for OTP.', // Success toast
           error: 'Error: Sign up failed! Please try again.' // Error toast
         }
       ).then((response) => {
-
+        console.log(response.data.email)
         localStorage.setItem('email', response.data.email);
-        toast.success('Sign up successful! Please check your inbox for OTP.');
         setShowModal(true); // Show the OTP modal
       }).catch((error) => {
         console.error('Error during signup:', error);
@@ -154,7 +153,7 @@ function Form(props) {
                   )}
                 </div>
               </div>
-              {isLogin ? 
+              {isLogin ?
                 <div className='flex justify-between'>
                   <div className='flex items-center me-4'>
                     <input type="checkbox" className='rounded-[12px]' />
@@ -181,17 +180,12 @@ function Form(props) {
         </div>
       </div>
 
-      <ToastContainer position="top-center"
-        autoClose={2000}
-        hideProgressBar={true}
-        newestOnTop={false}
-        closeOnClick />
-        
+
       {/* Modal to display OTP */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-2 rounded-md max-w-sm w-full">
-            <Otp />
+          <Otp onSuccess={() => window.location.reload()} />
             <button
               onClick={() => setShowModal(false)} // Close the modal when clicked
               className="mt-4 w-full py-2 bg-red-500 text-white font-bold rounded-md hover:bg-red-600 transition"

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from '../../interceptors';  // Import your axios instance
 import { Navigate, useNavigate } from "react-router-dom";
 
-function Otp() {
+function Otp({ onSuccess }) {
   const navigate = useNavigate();
   const [otp, setOtp] = useState(new Array(4).fill(""));
   const [timer, setTimer] = useState(45);
@@ -29,7 +29,7 @@ function Otp() {
     setMessage("");
     try {
       const email = localStorage.getItem('email');
-      const response = await api.post('/user/api/test/', { email });
+      const response = await api.post('/user/otp/resend/', { email });
       localStorage.setItem('email', response.data.email);
       setUser(response.data.email);
       setMessage("OTP has been resent. Please check your inbox.");
@@ -43,13 +43,15 @@ function Otp() {
     const enteredOtp = otp.join("");
     try {
       const email = localStorage.getItem('email');
-      const response = await api.post('/user/api/test/', { email, enteredOtp });
+      const response = await api.post('user/otp/verification/', { email, enteredOtp });
       setMessage(response.data.message);
       setUser(response.data.userInfo);
       localStorage.removeItem('email');
+      if (onSuccess) onSuccess();
       navigate('/');
+
     } catch (error) {
-      setMessage("Invalid OTP or OTP has expired.");
+      setMessage(error?.response?.data?.error || "Invalid otp or has expired");
     }
   };
 
