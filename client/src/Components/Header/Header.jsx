@@ -47,8 +47,9 @@ function Header() {
       <div className="">
       <div className="hidden lg:flex grid grid-cols-6 gap-10">
       <div
+      onClick={()=>navigate('/home/')}
         className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
-          isActive("/user/market") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
+          isActive("/home") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
         }`}
       >
         <img src={MarketIcon} alt="Market" className="rounded" />
@@ -57,7 +58,7 @@ function Header() {
         </div>
         <div
           className={`absolute inset-x-0 -bottom-4 h-[3px] ${
-            isActive("/user/market")
+            isActive("/home")
               ? "bg-[#002F42] scale-x-100"
               : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
           } transition-transform duration-500 ease-in-out origin-center`}
