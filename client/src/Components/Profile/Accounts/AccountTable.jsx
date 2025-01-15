@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux'; // Redux hook to access authenticatio
 import { ToastContainer, toast } from 'react-toastify'; // For displaying success/error messages
 import 'react-toastify/dist/ReactToastify.css'; // Importing toast styles
 import EditAccountModal from './EditAccountModal';
+import DeleteAccountModal from './DeleteAccountModal';
 
 function AccountTable() {
   // State for storing accounts data
@@ -113,7 +114,7 @@ function AccountTable() {
             <div className="text-center">{account.currency}</div>
             <div className="text-center space-x-2">
               <EditAccountModal account={account} onUpdate={fetchAccounts}  />
-              <button className="text-red-500 hover:text-red-700">Delete</button>
+              <DeleteAccountModal account={account} onDelete={fetchAccounts}/>
             </div>
             {!account.is_active && (
               <div
@@ -155,16 +156,7 @@ function AccountTable() {
       )}
 
       {/* Toast container for notifications */}
-      <ToastContainer
-        position="top-center" // Display notifications at the top center
-        autoClose={1000} // Close notifications automatically after 1 second
-        hideProgressBar={true} // Hide progress bar
-        closeOnClick // Close notifications on click
-        pauseOnHover={false} // Do not pause on hover
-        draggable // Allow notifications to be dragged
-        theme="colored" // Use colored theme for notifications
-        style={{ margin: '0 auto' }}
-      />
+      
     </div>
   );
 }

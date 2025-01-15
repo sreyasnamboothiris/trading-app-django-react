@@ -14,7 +14,8 @@ import Home from './Pages/Home';
 function App() {
   return (
     <div className="App dark:black">
-      <ToastContainer position="top-center"
+      <ToastContainer
+        position="top-center"
         autoClose={1000}
         hideProgressBar={true}
         newestOnTop={false}
