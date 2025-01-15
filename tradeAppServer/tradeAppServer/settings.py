@@ -58,8 +58,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'user',
     'corsheaders',
-    'mpadmin'
+    'mpadmin',
+    'market',
+    'django_celery_beat',
 ]
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -71,7 +74,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'user.middleware.UserStatusMiddleware'
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -198,4 +200,9 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sreyasstrader@gmail.com'
 EMAIL_HOST_PASSWORD = 'kpxn onnl yqdh rtmd'
 
+
+# Celery Settings
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis as message broker
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
 
