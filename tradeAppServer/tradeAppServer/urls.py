@@ -9,6 +9,7 @@ urlpatterns = [
     path('user/',include('user.urls')),
     path('mp-admin/',include('mpadmin.urls')),
     path('accounts/', include('allauth.urls')),
+    path('market/',include('market.urls')),
 ]
 
 
