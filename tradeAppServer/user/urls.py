@@ -18,6 +18,7 @@ urlpatterns = [
     path('account/create/', views.AccountView.as_view(), name='create-account'),
     path('account/list/', views.AccountView.as_view(), name='account-list'),
     path('account/update/',views.AccountView.as_view(),name='switch-update'),
+    path('account/delete/',views.AccountView.as_view(),name='delete-acount'),
 
 
     ## other details

@@ -10,6 +10,7 @@ import api from '../../../interceptors';
 import { ToastContainer } from 'react-toastify';
 import ResetPassword from './ResetPassword';
 import AddAccountButton from '../Accounts/AddAccountButton'
+import Watchlist from '../../Watchlist/Watchlist';
 
 
 function EditProfile() {
@@ -40,7 +41,7 @@ function EditProfile() {
       },
     })
       .then((response) => {
-        setUserDetails(response.data);
+        setUserDetails(response.data.user);
         setValue('first_name', response.data.user.first_name);
         setValue('last_name', response.data.user.last_name);
         setValue('email', response.data.user.email);
@@ -78,6 +79,7 @@ function EditProfile() {
     })
       .then((response) => {
         setUserDetails(response.data.data);
+        
         setPreviewImage('http://localhost:8000/' + response.data.data.profile_picture);
         toast.success(response.data.message);
 
@@ -121,12 +123,12 @@ function EditProfile() {
   return (
     <div className='mt-1 bg-[#D9D9D9] dark:bg-black'>
       <Header />
-      <ToastContainer position="top-center"
-        autoClose={2000}
-        hideProgressBar={true}
-        newestOnTop={false}
-        closeOnClick />
-      <div className='p-1 md:p-3 bg-[#DED7F8] dark:bg-black'>
+      <div className='flex flex-row'>
+        <div className='hidden lg:flex p-3'>
+          <Watchlist />
+        </div>
+        <div className='w-screen py-2'>
+        <div className='p-1 md:p-1 bg-[#DED7F8] dark:bg-black'>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className='p-2 md:p-8 bg-[#DED7F8] md:px-24 border-2 border-gray-500 rounded-md'>
             <div>
@@ -302,6 +304,9 @@ function EditProfile() {
           </div>
         </form>
       </div>
+        </div>
+      </div>
+      
       <div>
         <AccountTable />
       </div>

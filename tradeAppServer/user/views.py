@@ -347,6 +347,46 @@ class AccountView(generics.GenericAPIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def delete(self, request, *args, **kwargs):
+        # Delete an account
+        user = request.user
+        account_id = request.data.get("account_id")
+
+        if not account_id:
+            return Response({"error": "Account ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Get the account to delete
+            account = self.get_queryset().filter(id=account_id, user=user).first()
+
+            if not account:
+                return Response({"error": "Account not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if the account is active and if it's the only account
+            if account.is_active:
+                # Check if the user has only one account
+                user_accounts = self.get_queryset().filter(user=user)
+                if user_accounts.count() == 1:
+                    return Response({"error": "You must have at least one account."}, status=status.HTTP_400_BAD_REQUEST)
+
+                # If the account is active and not the only one, deactivate it and switch to another active account
+                account.is_active = False
+                account.save()
+
+                # Activate another account
+                next_account = user_accounts.exclude(id=account.id).first()
+                if next_account:
+                    next_account.is_active = True
+                    next_account.save()
+
+            # Delete the account
+            account.delete()
+
+            return Response({"message": "Account deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)   
+
 
 
 ##### Others #####
@@ -380,6 +420,10 @@ class TestApi(APIView):
         data['message'] = 'Data has been updated!'
         return Response(data, status=status.HTTP_200_OK)
 
+    def delete(self, reqeust):
+        print('hellwo vannu')
+        return Response(status=status.HTTP_200_OK)
+    
     def patch(self, request):
         # Example logic for PATCH request (typically used for partial updates)
         data = request.data
