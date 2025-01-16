@@ -20,6 +20,8 @@ urlpatterns = [
     path('account/update/',views.AccountView.as_view(),name='switch-update'),
     path('account/delete/',views.AccountView.as_view(),name='delete-acount'),
 
+    ## Watchlist
+    path('account/watchlists/',views.WatchlistView.as_view(),name='watchlist-view'),
 
     ## other details
     path('currency/list/', views.CurrencyListView.as_view(), name='currency-list'),

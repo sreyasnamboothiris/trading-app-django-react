@@ -1,132 +1,85 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SymbolSearchWidget from './SymbolSearchWidget';
-import './watchlist.css';
 import AddWatchlistModal from './AddWatchlistModal';
-
+import WatchlistItems from './WatchlistItems';
+import './watchlist.css';
+import { useSelector } from 'react-redux';
+import api from '../../interceptors';
 
 function Watchlist() {
-  const [isActive, setIsActive] = useState(true)
-  const [isNonactive, setIsNonactive] = useState('')
-  const stocks = [
-    {
-      name: 'Apple',
-      exchange: 'NASDAQ',
-      value: 145.23,
-      change: 1.34,
-      percentage: 0.93,
-    },
-    {
-      name: 'Microsoft',
-      exchange: 'NASDAQ',
-      value: 299.15,
-      change: -2.45,
-      percentage: -0.81,
+  const [activeWatchlist, setActiveWatchlist] = useState(1); // Keeps track of the active watchlist
+  const [watchlists, setWatchlists] = useState({}); // State to store fetched watchlists
+  const isAuth = useSelector((state) => state.auth.isAuth); // Access Redux state
+
+  useEffect(() => {
+    if (isAuth) {
+      // Fetch watchlists from backend
+      const fetchWatchlists = async () => {
+        try {
+          const response = await api.get('/user/account/watchlists/', {
+            headers: {
+              Authorization: `Bearer ${isAuth.access}`,
+            },
+          });
+          setWatchlists(response.data); // Assuming the response contains the watchlists in a suitable format
+        } catch (error) {
+          console.error('Error fetching watchlists:', error);
+        }
+      };
+
+      fetchWatchlists();
     }
-  ];
+  }, [isAuth]);
 
   return (
     <div className="md:w-40 lg:w-60 xl:w-80 bg-[#2D5F8B] p-2 flex flex-col">
+      {/* Top Navigation */}
       <div className="flex flex-row">
-        <div
-          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}>
-          <div className='text-4xl font-bold'>1</div>
-          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-            Name
-          </div>
-          <div className={`absolute inset-x-0 -bottom-4 h-[3px] ${isActive
-            ? "bg-[#002F42] scale-x-100"
-            : "bg-transparent scale-x-0 group-hover:bg-black group-hover:scale-x-100"
-            } transition-transform duration-500 ease-in-out origin-center`}
-          ></div>
-        </div>
-        <div
-          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}>
-          <div className='text-4xl font-bold'>2</div>
-          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-            Name 2
-          </div>
-          <div
+      {Object.keys(watchlists).map((watchlistId, index) => (
+  <div
+    key={watchlistId}
+    onClick={() => setActiveWatchlist(Number(watchlistId))}
+    className={`relative cursor-pointer px-2 flex flex-col items-center justify-center transition-colors duration-700 ease-in-out ${
+      activeWatchlist === Number(watchlistId) ? '' : 'opacity-70'
+    } group`} // Add "group" class for hover functionality
+  >
+    {/* Tooltip showing the watchlist name and its number */}
+    <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
+      {`${watchlists[watchlistId]?.name}`}
+    </div>
 
-            className={`absolute inset-x-0 -bottom-4 h-[3px] ${isNonactive
-              ? "bg-[#002F42] scale-x-100"
-              : "bg-transparent scale-x-0 group-hover:bg-black group-hover:scale-x-100"
-              } transition-transform duration-500 ease-in-out origin-center`}
-          ></div>
-        </div>
+    {/* Render the index */}
+    <div className="text-4xl font-bold">{index + 1}</div>
+
+    {/* Active watchlist indicator */}
+    {activeWatchlist === Number(watchlistId) && (
+      <div className="w-full h-1 bg-black"></div>
+    )}
+  </div>
+))}
+
         <div
-          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}>
-          <AddWatchlistModal/>
+          className={`relative cursor-pointer w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}
+        >
+          <AddWatchlistModal />
         </div>
       </div>
-      <div className="w-full">
+
+      {/* Symbol Search */}
+      <div className="w-full mt-4">
         <SymbolSearchWidget />
       </div>
-      <div className="w-full mt-4">
-        {stocks.map((stock, index) => (
-          <div
-            key={index}
-            className="relative bg-[#DED7F8] p-2 mb-1 rounded-md shadow-md group"
-          >
-            {/* Stock Data */}
-            <div className="flex justify-between items-center">
-              <div className="flex">
-                <div className="text-xl font-bold">{stock.name}</div>
-                <div className="p-1 text-xs bg-gray-300 inline-block m-1">
-                  {stock.exchange}
-                </div>
-              </div>
-              <div className="text-right">
-                <div
-                  className={`text-xl font-bold ${stock.change >= 0 ? 'text-green-500' : 'text-red-500'}`}
-                >
-                  {stock.value.toFixed(2)}
-                </div>
-                <div className="text-sm text-black">
-                  {stock.change >= 0 ? '+' : ''}
-                  {stock.change.toFixed(2)} ({stock.percentage >= 0 ? '+' : ''}
-                  {stock.percentage.toFixed(2)}%)
-                </div>
-              </div>
-            </div>
 
-             {/* Hover Box (Show only when hovering over the symbol) */}
-              <div className="absolute bottom-2 right-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500 ease-in-out bg-gray-500 shadow-md px-2 py-1 rounded-md border">
-                <div className="flex space-x-2">
-                  {['Buy', 'Sell', 'Info', 'Chart'].map((label, idx) => (
-                    <div key={idx} className="has-tooltip">
-                      <span className="tooltip shadow-lg p-1 text-black -mt-8 bg-black text-white rounded-md px-4">
-                        {label}
-                      </span>
-                      <button
-                        className={`bg-gray-100 text-sm font-bold py-1 rounded-md w-8 ${
-                          label === 'Buy'
-                            ? 'bg-white hover:bg-green-700 text-green-500 hover:text-white'
-                            : label === 'Sell'
-                            ? 'bg-white hover:bg-red-700 text-red-500 hover:text-white'
-                            : 'bg-white hover:bg-blue-700 text-blue-500 hover:text-white'
-                        } hover:opacity-80`}
-                      >
-                        {label.charAt(0)}
-                      </button>
-                    </div>
-                  ))}
-                  {/* Delete Button */}
-                  <div className="has-tooltip">
-                    <span className="tooltip rounded shadow-lg p-1 bg-gray-100 text-black -mt-8">
-                      Delete
-                    </span>
-                    <button className="bg-red-600 text-white text-xs px-2 py-1 rounded-md hover:opacity-80">
-                      <i className="fas fa-trash-alt"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-          </div>
-        ))}
+      {/* Watchlist Items */}
+      <div className="w-full mt-4">
+        {watchlists[activeWatchlist] ? (
+          <WatchlistItems stocks={[]} />
+        ) : (
+          <div>Loading...</div>
+        )}
       </div>
     </div>
   );
 }
 
 export default Watchlist;
-

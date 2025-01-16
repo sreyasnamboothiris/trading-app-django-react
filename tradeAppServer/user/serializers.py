@@ -4,7 +4,7 @@ import re
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import CustomUser, Currency, Account, TemporaryUser
+from .models import CustomUser, Currency, Account, TemporaryUser, Watchlist
 from django.core.exceptions import ValidationError
 
 
@@ -187,4 +187,9 @@ class PasswordResetSerializer(serializers.Serializer):
         return user
 
 
+class WatchlistSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Watchlist
+        fields = ['id', 'name', 'user','account']
 

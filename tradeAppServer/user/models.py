@@ -8,6 +8,7 @@ from django.core.validators import MinValueValidator,RegexValidator,EmailValidat
 from django.utils.translation import gettext_lazy as _
 from mpadmin.models import Currency
 from django.utils.timezone import now
+from market.models import Asset
 
 
 def validate_non_space_string(value):
@@ -205,3 +206,35 @@ class Account(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.user.username}"
+
+
+class Watchlist(models.Model):
+    
+    name = models.CharField(max_length=100, validators=[validate_non_space_string])
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="watchlists")
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="watchlists")
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('account', 'name')  # Prevent duplicate watchlist names within an account.
+
+    def clean(self):
+        # Ensure max 2 watchlists per account
+        print(self.account)
+        if Watchlist.objects.filter(account=self.account).count() >= 2:
+            raise ValidationError(_("An account can have a maximum of 2 watchlists."))
+        super().clean()
+
+    def __str__(self):
+        return f"Watchlist: {self.name} (Account: {self.account.name})"
+
+
+class WatchlistItem(models.Model):
+    watchlist = models.ForeignKey(Watchlist, on_delete=models.CASCADE, related_name="items")
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name="watchlist_items")
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('watchlist', 'asset')  # Prevent duplicate assets within the same watchlist.
+
+    def __str__(self):
+        return f"Asset: {self.asset.name} in {self.watchlist.name}"
