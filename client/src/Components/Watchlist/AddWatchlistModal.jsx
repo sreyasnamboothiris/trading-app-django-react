@@ -1,32 +1,34 @@
 import React, { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import api from "../../interceptors";
+import { useSelector } from "react-redux";
 
 function AddWatchlistModal() {
     const [showModal, setShowModal] = useState(false);
     const [watchlistName, setWatchlistName] = useState("");
     const [loading, setLoading] = useState(false);
-
+    const isAuth = useSelector((state) =>  state.auth.isAuth )
     const handleAddWatchlist = () => {
         if (!watchlistName) {
             toast.error("Watchlist name cannot be empty");
             return;
         }
-    
+
         setLoading(true);
-    
+
         // Make API request to create a watchlist
         api
-            .post("user/api/test/", { name: watchlistName }) // Pass watchlist name in the request body
+            .post("user/account/watchlists/", { name: watchlistName, user_id: isAuth.user_id }) // Pass watchlist name in the request body
             .then((response) => {
                 toast.success(response.data.message || "Watchlist created successfully");
-    
+
                 // Close modal after a short delay to ensure toast is visible
                 setTimeout(() => {
                     setShowModal(false);
                 }, 500); // Adjust the delay as needed (e.g., 500ms)
             })
             .catch((error) => {
+                console.log(error)
                 const errorMessage =
                     error.response?.data?.error || "Failed to create watchlist";
                 toast.error(errorMessage);
@@ -38,7 +40,7 @@ function AddWatchlistModal() {
 
     return (
         <div>
-            
+
             <button
                 type="button"
                 onClick={() => setShowModal(true)}
