@@ -4,7 +4,9 @@ import re
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import CustomUser, Currency, Account, TemporaryUser, Watchlist
+
+from market.serializers import AssetSerializer
+from .models import CustomUser, Currency, Account, TemporaryUser, Watchlist, WatchlistItem
 from django.core.exceptions import ValidationError
 
 
@@ -193,3 +195,9 @@ class WatchlistSerializer(serializers.ModelSerializer):
         model = Watchlist
         fields = ['id', 'name', 'user','account']
 
+class WatchlistItemSerializer(serializers.ModelSerializer):
+    asset = AssetSerializer()  # Nesting AssetSerializer to show the asset details
+
+    class Meta:
+        model = WatchlistItem
+        fields = ['id', 'watchlist', 'asset', 'added_at']  

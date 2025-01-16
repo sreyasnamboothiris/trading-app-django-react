@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     'market',
     'django_celery_beat',
 ]
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -202,7 +202,10 @@ EMAIL_HOST_PASSWORD = 'kpxn onnl yqdh rtmd'
 
 
 # Celery Settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis as message broker
+CELERY_BROKER_URL = 'redis://localhost:6379/0' # Redis as message broker
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
-
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_ALWAYS_EAGER = False  # Set to True for local testing
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TIMEZONE = 'UTC'

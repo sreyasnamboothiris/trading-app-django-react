@@ -16,9 +16,11 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
 import random
-from .models import CustomUser, Account, TemporaryUser, Watchlist
+from market.serializers import AssetSerializer
+from market.models import Asset
+from .models import CustomUser, Account, TemporaryUser, Watchlist, WatchlistItem
 from mpadmin.models import Currency
-from .serializers import PasswordResetSerializer, UserSerializers, AccountSerializer, CurrencySerializer, WatchlistSerializer
+from .serializers import PasswordResetSerializer, UserSerializers, AccountSerializer, CurrencySerializer, WatchlistItemSerializer, WatchlistSerializer
 from rest_framework.generics import ListAPIView
 import json
 import os
@@ -419,6 +421,7 @@ class WatchlistView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def post(self, request):
         # Get the data from the request
         data = request.data
@@ -429,7 +432,8 @@ class WatchlistView(APIView):
             # Fetch the Account object based on user_id
             account = Account.objects.get(user=user_id, is_active=True)
             user = CustomUser.objects.get(id=user_id)
-            existing_watchlists = Watchlist.objects.filter(account=account).count()
+            existing_watchlists = Watchlist.objects.filter(
+                account=account).count()
             if existing_watchlists >= 2:
                 # Return error response if more than 2 watchlists exist
                 return Response({
@@ -441,7 +445,7 @@ class WatchlistView(APIView):
                 account=account,
                 user=user
             )
-            
+
             # Perform validation on the Watchlist instance (to check if there are already 2 watchlists for the account)
             new_watchlist.clean()
 
@@ -482,7 +486,70 @@ class WatchlistView(APIView):
                 "message": "A watchlist with this name already exists for the account."
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
+class WatchlistItemView(APIView):
+
+    def get(self, request, watchlistId):
+        # Fetch the watchlist by its ID
+        try:
+            watchlist = Watchlist.objects.get(id=watchlistId)
+        except Watchlist.DoesNotExist:
+            return Response({"error": "Watchlist not found"}, status=404)
+
+        watchlist_items = WatchlistItem.objects.filter(watchlist=watchlist)
+
+        # Serialize the watchlist items
+        serializer = WatchlistItemSerializer(watchlist_items, many=True)
+
+        return Response(serializer.data, status=200)
+
+    def post(self, request):
+        print('ivde vannu sdfas')
+        try:
+            # Get the 'data' field from the request body
+            # Safer way to access, avoiding key errors
+            data = request.data.get('data')
+            if not data:
+                return Response({"message": "'data' field is missing in request body."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Extract the watchlistId and assetId from the data
+            watchlist_id = data['watchlistId']
+            asset = data['asset']
+            if watchlist_id is None or asset is None:
+                print('enrter here00')
+                return Response({"message": "'watchlistId' or 'assetId' is missing in 'data'."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Fetch the Watchlist and Asset objects
+            try:
+                watchlist = Watchlist.objects.get(id=watchlist_id)
+            except Watchlist.DoesNotExist:
+                return Response({"message": f"Watchlist with ID {watchlist_id} does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                asset = Asset.objects.get(id=asset['id'])
+            except Asset.DoesNotExist:
+                return Response({"message": "Asset not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Create the WatchlistItem
+            watchlist_item = WatchlistItem.objects.create(
+                watchlist=watchlist,
+                asset=asset
+            )
+
+            # Return a success response
+            return Response({"message": "Asset added to watchlist successfully!"}, status=status.HTTP_201_CREATED)
+
+            # Return a success response
+            return Response({"message": "Asset added to watchlist successfully!"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Handle any other errors that may arise
+            print(e)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 ##### Others #####
+
+
 class CurrencyListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Currency.objects.all()
@@ -498,67 +565,48 @@ class TestApi(APIView):
         return Response({"email": 'email@gmail.com'}, status=200)
 
     def post(self, request):
-        # Get the data from the request
-        data = request.data
-        user_id = data.get('user_id')
-        name = data.get('name')
-
+        print('ivde vannu sdfas')
         try:
-            # Fetch the Account object based on user_id
-            account = Account.objects.get(user=user_id, is_active=True)
-            user = CustomUser.objects.get(id=user_id)
-            existing_watchlists = Watchlist.objects.filter(account=account).count()
-            if existing_watchlists >= 2:
-                # Return error response if more than 2 watchlists exist
-                return Response({
-                    "error": "Error: You can only have a maximum of 2 watchlists per account."
-                }, status=status.HTTP_400_BAD_REQUEST)
-            # Create a new Watchlist instance
-            new_watchlist = Watchlist(
-                name=name,
-                account=account,
-                user=user
+            # Get the 'data' field from the request body
+            # Safer way to access, avoiding key errors
+            data = request.data.get('data')
+            if not data:
+                return Response({"message": "'data' field is missing in request body."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Extract the watchlistId and assetId from the data
+            watchlist_id = data['watchlistId']
+            asset = data['asset']
+            if watchlist_id is None or asset is None:
+                print('enrter here00')
+                return Response({"message": "'watchlistId' or 'assetId' is missing in 'data'."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Fetch the Watchlist and Asset objects
+            try:
+                watchlist = Watchlist.objects.get(id=watchlist_id)
+            except Watchlist.DoesNotExist:
+                return Response({"message": f"Watchlist with ID {watchlist_id} does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                asset = Asset.objects.get(id=asset['id'])
+            except Asset.DoesNotExist:
+                return Response({"message": "Asset not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Create the WatchlistItem
+            watchlist_item = WatchlistItem.objects.create(
+                watchlist=watchlist,
+                asset=asset
             )
-            
-            # Perform validation on the Watchlist instance (to check if there are already 2 watchlists for the account)
-            new_watchlist.clean()
 
-            # Try saving the new watchlist
-            new_watchlist.save()
+            # Return a success response
+            return Response({"message": "Asset added to watchlist successfully!"}, status=status.HTTP_201_CREATED)
 
-            # Return success response with the watchlist data
-            return Response({
-                "message": "Watchlist created successfully!",
-                "watchlist": {
-                    "id": new_watchlist.id,
-                    "name": new_watchlist.name,
-                    "account_id": new_watchlist.account.id
-                }
-            }, status=status.HTTP_201_CREATED)
+            # Return a success response
+            return Response({"message": "Asset added to watchlist successfully!"}, status=status.HTTP_200_OK)
 
-        except Account.DoesNotExist:
-            # Return error if the account does not exist or is inactive
-            return Response({
-                "message": "Account not found or inactive."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        except CustomUser.DoesNotExist:
-            # Return error if the user is not found
-            return Response({
-                "message": "User not found."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        except ValidationError as e:
-            # Return validation errors if max 2 watchlists constraint is violated
-            return Response({
-                "message": str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        except IntegrityError:
-            # Return error if there's an IntegrityError (e.g., duplicate watchlist name within an account)
-            return Response({
-                "message": "A watchlist with this name already exists for the account."
-            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            # Handle any other errors that may arise
+            print(e)
+            return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request):
         # Example logic for PUT request (typically used to update resources)

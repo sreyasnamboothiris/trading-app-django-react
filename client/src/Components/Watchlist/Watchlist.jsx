@@ -7,10 +7,14 @@ import { useSelector } from 'react-redux';
 import api from '../../interceptors';
 
 function Watchlist() {
-  const [activeWatchlist, setActiveWatchlist] = useState(1); // Keeps track of the active watchlist
+  const [activeWatchlist, setActiveWatchlist] = useState(null); // Keeps track of the active watchlist
+  const [activeWatchlistId, setActiveWatchlistId] = useState(null);
   const [watchlists, setWatchlists] = useState({}); // State to store fetched watchlists
   const isAuth = useSelector((state) => state.auth.isAuth); // Access Redux state
-
+  const handleWatchlistChange = (index, id) => {
+    setActiveWatchlist(index);  // Set the index
+    setActiveWatchlistId(id);        // Set the real ID
+  };
   useEffect(() => {
     if (isAuth) {
       // Fetch watchlists from backend
@@ -22,6 +26,11 @@ function Watchlist() {
             },
           });
           setWatchlists(response.data); // Assuming the response contains the watchlists in a suitable format
+          if (response.data && !activeWatchlist && Object.keys(response.data).length > 0) {
+            const firstWatchlistId = response.data[Object.keys(response.data)[0]].id;
+            setActiveWatchlist(0);  // Set the index of the first watchlist (0-based)
+            setActiveWatchlistId(firstWatchlistId);  // Set the ID of the first watchlist
+          }
         } catch (error) {
           console.error('Error fetching watchlists:', error);
         }
@@ -38,7 +47,7 @@ function Watchlist() {
       {Object.keys(watchlists).map((watchlistId, index) => (
   <div
     key={watchlistId}
-    onClick={() => setActiveWatchlist(Number(watchlistId))}
+    onClick={() => handleWatchlistChange(index, watchlists[watchlistId]?.id)}
     className={`relative cursor-pointer px-2 flex flex-col items-center justify-center transition-colors duration-700 ease-in-out ${
       activeWatchlist === Number(watchlistId) ? '' : 'opacity-70'
     } group`} // Add "group" class for hover functionality
@@ -67,16 +76,14 @@ function Watchlist() {
 
       {/* Symbol Search */}
       <div className="w-full mt-4">
-        <SymbolSearchWidget />
+        <SymbolSearchWidget  activeWatchlist={activeWatchlistId}/>
       </div>
 
       {/* Watchlist Items */}
       <div className="w-full mt-4">
-        {watchlists[activeWatchlist] ? (
-          <WatchlistItems stocks={[]} />
-        ) : (
-          <div>Loading...</div>
-        )}
+        {activeWatchlistId && (
+          <WatchlistItems watchlistId = {activeWatchlistId} />
+        ) }
       </div>
     </div>
   );

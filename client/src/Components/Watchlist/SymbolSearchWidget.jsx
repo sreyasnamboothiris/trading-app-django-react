@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../../interceptors';  // Import the custom API instance
 import { useSelector } from 'react-redux';
 
-function SymbolSearchWidget() {
+function SymbolSearchWidget({ activeWatchlist }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [assets, setAssets] = useState([]); // Store assets
   const [hasMore, setHasMore] = useState(true); // To track if there are more assets to load
@@ -10,7 +10,6 @@ function SymbolSearchWidget() {
   const isAuth = useSelector((state) => state.auth.isAuth);
   const listContainerRef = useRef(null);  // Reference to the list container
   const [loadedCount, setLoadedCount] = useState(0); // Keep track of how many assets are loaded
-
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
     setAssets([]);  // Clear current assets when search query changes
@@ -53,7 +52,23 @@ function SymbolSearchWidget() {
   }, [searchQuery]); // Trigger when searchQuery changes
 
   const handleAddAsset = (asset) => {
-    console.log('Adding asset:', asset);
+    
+    api.post('user/account/watchlists/list/', {
+      headers: {  // Corrected 'Headers' to 'headers'
+        Authorization: `Bearer ${isAuth.access}`,  // Authorization header
+      },
+      data: {  // 'data' should be inside the body of the POST request
+        watchlistId: activeWatchlist,  // Pass the current activeWatchlist ID
+        asset: asset,  // Pass the asset data
+      }
+    })
+    .then((response) => {
+      console.log('Asset added successfully', response.data);
+    })
+    .catch((error) => {
+      console.error('Error adding asset:', error);
+    });
+
   };
 
   // Infinite scroll functionality
