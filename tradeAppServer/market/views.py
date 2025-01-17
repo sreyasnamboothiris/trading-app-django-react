@@ -10,15 +10,19 @@ class AssetSearchView(APIView):
 
     def get(self, request):
         query = request.query_params.get('query', '')
-        
+        print(f"[DEBUG] Asset search request received with query: '{query}'")
+
         # Filter assets based on the search query (case insensitive)
         if query:
             assets = Asset.objects.filter(asset_name__istartswith=query)
+            
         else:
             assets = Asset.objects.all()  # Return all assets if no query is provided
+            
 
         # Serialize the assets data
         serializer = AssetSerializer(assets, many=True)
+        print("[DEBUG] Assets serialized successfully")
 
         # Return the full list of assets matching the query
         return Response(serializer.data)
