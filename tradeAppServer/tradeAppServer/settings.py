@@ -78,7 +78,8 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default: Use database for sessions
+# Default: Use database for sessions
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_SECURE = False  # Set to True only for HTTPS
 SESSION_COOKIE_HTTPONLY = True  # Ensures cookies are not accessible via JavaScript
 SESSION_SAVE_EVERY_REQUEST = True  # Set True if session updates on every request
@@ -101,7 +102,6 @@ SIMPLE_JWT = {
 }
 
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -122,23 +122,25 @@ WSGI_APPLICATION = 'tradeAppServer.wsgi.application'
 
 # Media files (User-uploaded content)
 MEDIA_URL = '/media/'  # URL to access media files in the browser
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Location to store uploaded media files
+# Location to store uploaded media files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Configure the profile pictures folder inside the media directory
-PROFILE_PICS_FOLDER = 'profile_pics/'  # Subfolder inside MEDIA_ROOT for profile pictures
+# Subfolder inside MEDIA_ROOT for profile pictures
+PROFILE_PICS_FOLDER = 'profile_pics/'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
 DATABASES = {
-        'default': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tradingapp', 
-        'USER': 'postgres',     
-        'PASSWORD': 'Sre@8281', 
-        'HOST': 'localhost',        
-        'PORT': '5432',            
+        'NAME': 'tradingapp',
+        'USER': 'postgres',
+        'PASSWORD': 'Sre@8281',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -191,8 +193,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -202,10 +202,18 @@ EMAIL_HOST_PASSWORD = 'kpxn onnl yqdh rtmd'
 
 
 # Celery Settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0' # Redis as message broker
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis as message broker
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_TASK_ALWAYS_EAGER = False  # Set to True for local testing
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_TIMEZONE = 'UTC'
+
+CELERY_BEAT_SCHEDULE = {
+    'update-asset-prices': {
+        'task': 'market.tasks.update_asset_prices',
+        'schedule': timedelta(seconds=1),
+    },
+}
+
