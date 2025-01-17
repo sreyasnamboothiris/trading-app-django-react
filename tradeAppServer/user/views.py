@@ -407,17 +407,14 @@ class AccountView(generics.GenericAPIView):
 ##### User watchlist #####
 class WatchlistView(APIView):
     def get(self, request):
-        print('ivde vannu')
+        
         try:
             # Fetch all watchlists for the authenticated user
             watchlists = Watchlist.objects.filter(
                 user=request.user).order_by('name')  # Alphabetical order
             # Serialize the data
-            print(watchlists)
             serializer = WatchlistSerializer(watchlists, many=True)
-            print(serializer.data)
-            for i in serializer.data:
-                print(i)
+            
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -448,8 +445,6 @@ class WatchlistView(APIView):
 
             # Perform validation on the Watchlist instance (to check if there are already 2 watchlists for the account)
             new_watchlist.clean()
-
-            # Try saving the new watchlist
             new_watchlist.save()
 
             # Return success response with the watchlist data
@@ -504,7 +499,6 @@ class WatchlistItemView(APIView):
         return Response(serializer.data, status=200)
 
     def post(self, request):
-        print('ivde vannu sdfas')
         try:
             # Get the 'data' field from the request body
             # Safer way to access, avoiding key errors
@@ -516,7 +510,6 @@ class WatchlistItemView(APIView):
             watchlist_id = data['watchlistId']
             asset = data['asset']
             if watchlist_id is None or asset is None:
-                print('enrter here00')
                 return Response({"message": "'watchlistId' or 'assetId' is missing in 'data'."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Fetch the Watchlist and Asset objects
@@ -544,7 +537,6 @@ class WatchlistItemView(APIView):
 
         except Exception as e:
             # Handle any other errors that may arise
-            print(e)
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 ##### Others #####
@@ -625,3 +617,6 @@ class TestApi(APIView):
         # Perform partial update to resource
         data['message'] = 'Data has been partially updated!'
         return Response(data, status=status.HTTP_200_OK)
+
+
+
