@@ -213,7 +213,6 @@ CELERY_TIMEZONE = 'UTC'
 CELERY_BEAT_SCHEDULE = {
     'update-asset-prices': {
         'task': 'market.tasks.update_asset_prices',
-        'schedule': timedelta(seconds=1),
+        'schedule': timedelta(minutes=1),
     },
 }
-
