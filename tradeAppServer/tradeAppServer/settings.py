@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'mpadmin',
     'market',
     'django_celery_beat',
+    'channels',
 ]
 
 
@@ -118,6 +119,7 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'tradeAppServer.asgi.application'
 WSGI_APPLICATION = 'tradeAppServer.wsgi.application'
 
 # Media files (User-uploaded content)
@@ -213,6 +215,17 @@ CELERY_TIMEZONE = 'UTC'
 CELERY_BEAT_SCHEDULE = {
     'update-asset-prices': {
         'task': 'market.tasks.update_asset_prices',
-        'schedule': timedelta(minutes=1),
+        'schedule': timedelta(seconds=1),
+    },
+}
+
+# Add Channels configuration
+ASGI_APPLICATION = 'tradeAppServer.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
     },
 }

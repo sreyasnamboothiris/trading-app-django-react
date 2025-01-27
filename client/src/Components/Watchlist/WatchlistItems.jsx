@@ -53,7 +53,7 @@ function WatchlistItems({ watchlistId }) {
                   {stock.asset.asset_type} {/* This is the type of asset */}
                 </div>
               </div>
-              <div className="text-right">
+              {/* <div className="text-right">
                 <div
                   className={`text-xl font-bold ${
                     stock.asset.last_traded_price >= 0 ? 'text-green-500' : 'text-red-500'
@@ -67,7 +67,7 @@ function WatchlistItems({ watchlistId }) {
                   {stock.percentage >= 0 ? '+' : ''}
                   {stock.percentage?.toFixed(2)}%)
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Hover Box (Show only when hovering over the symbol) */}

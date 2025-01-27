@@ -10,6 +10,7 @@ import ChartPage from './Pages/Chart/ChartPage';
 import Currency from './Pages/Admin/Currency';
 import { ToastContainer } from 'react-toastify';
 import Home from './Pages/Home';
+import Test from './Pages/Test/Test';
 
 function App() {
   return (
@@ -33,6 +34,8 @@ function App() {
             <Route path='home/' element = {<Home/>}/>
 
             <Route path='admin/currency' element={<Currency />} />
+
+            <Route path='test/' element={<Test />} />
           </Routes>
         </Router>
       </div>
