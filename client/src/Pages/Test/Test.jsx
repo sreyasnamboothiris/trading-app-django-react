@@ -1,25 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 function Test() {
   const [priceData, setPriceData] = useState(null);
+  const watchlistId = 3; // Change this ID as needed
 
   useEffect(() => {
-    // Connect to your Django WebSocket server
-    const socket = new WebSocket('ws://localhost:8000/ws/assets/'); // Match your Django websocket path
+    // Connect to the WebSocket server
+    const socket = new WebSocket("ws://localhost:8000/ws/assets/");
+
+    // Send watchlist_id after connection opens
+    socket.onopen = () => {
+      socket.send(JSON.stringify({ watchlist_id: watchlistId }));
+    };
 
     // Handle incoming messages
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log('Market Data:', data);
-      setPriceData(data); // Update the state with real-time data
+      console.log("Market Data:", data);
+
+      // Update state with real-time data
+      if (data.initial_prices) {
+        setPriceData(data.initial_prices);
+      } else if (data.updated_prices) {
+        setPriceData(data.updated_prices);
+      }
     };
 
     // Handle WebSocket connection errors
     socket.onerror = (error) => {
-      console.error('WebSocket Error:', error);
+      console.error("WebSocket Error:", error);
     };
 
-    // Cleanup when the component is unmounted
+    // Cleanup when component unmounts
     return () => {
       socket.close();
     };

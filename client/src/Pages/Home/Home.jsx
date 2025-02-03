@@ -1,8 +1,12 @@
 import React, { useEffect } from 'react';
-import Watchlist from '../Components/Watchlist/Watchlist';
-import Header from '../Components/Header/Header';
+import Watchlist from '../../Components/Watchlist/Watchlist';
+import Header from '../../Components/Header/Header';
+import UserStock from './UserStock';
+import { useSelector } from 'react-redux';
 
 function Home() {
+  const { selectedAsset } = useSelector((state) => state.homeData);
+
   useEffect(() => {
     // Load the Ticker Tape widget
     const tickerScript = document.createElement('script');
@@ -32,14 +36,44 @@ function Home() {
       interval: "1m",
       width: "425",
       isTransparent: false,
-      height: "450",
-      symbol: "NASDAQ:AAPL",
+      height: "520",
+      symbol: selectedAsset.tradingview_symbol,
       showIntervalTabs: true,
       displayMode: "multiple",
       locale: "en",
       colorTheme: "dark",
     });
     document.getElementById('tradingview-analysis-widget').appendChild(analysisScript);
+
+    // Load the Symbol Info widget
+    const symbolInfoScript = document.createElement('script');
+    symbolInfoScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js';
+    symbolInfoScript.async = true;
+    symbolInfoScript.innerHTML = JSON.stringify({
+      symbol: selectedAsset.tradingview_symbol,
+      width: "550",
+      locale: "en",
+      colorTheme: "dark",
+      isTransparent: false
+    });
+    document.getElementById('tradingview-symbol-info-widget').appendChild(symbolInfoScript);
+
+    // Load the Mini Symbol Overview widget
+    const miniSymbolScript = document.createElement('script');
+    miniSymbolScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
+    miniSymbolScript.async = true;
+    miniSymbolScript.innerHTML = JSON.stringify({
+      symbol: selectedAsset.tradingview_symbol,
+      width: 380,
+      height: 420,
+      locale: "en",
+      dateRange: "12M",
+      colorTheme: "dark",
+      isTransparent: false,
+      autosize: false,
+      largeChartUrl: ""
+    });
+    document.getElementById('tradingview-mini-symbol-widget').appendChild(miniSymbolScript);
   }, []);
 
   return (
@@ -52,12 +86,17 @@ function Home() {
           </div>
         </div>
       </div>
-      <div className='flex flex-colm gap-x-8 p-2'>
+      <div className='flex flex-row gap-x-4 p-2 items-start'>
         <div id="tradingview-analysis-widget">
           <div className="tradingview-widget-container__widget"></div>
         </div>
-        <div>
-            My content
+        <div id="tradingview-symbol-info-widget">
+          <div className="tradingview-widget-container__widget"></div>
+        </div>
+        <div id="tradingview-mini-symbol-widget">
+          <div className="tradingview-widget-container__widget"></div>
+          <div className="tradingview-widget-copyright">
+          </div>
         </div>
       </div>
     </div>

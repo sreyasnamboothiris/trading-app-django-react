@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../../interceptors';  // Import the custom API instance
 import { useSelector } from 'react-redux';
 
-function SymbolSearchWidget({ activeWatchlist }) {
+function SymbolSearchWidget({ activeWatchlist, onAssetAdded }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [assets, setAssets] = useState([]); // Store assets
   const [hasMore, setHasMore] = useState(true); // To track if there are more assets to load
@@ -26,7 +26,7 @@ function SymbolSearchWidget({ activeWatchlist }) {
           Authorization: `Bearer ${isAuth.access}`,
         },
       });
-
+      console.log(response.data)
       // Append the new assets to the existing ones
       setAssets((prevAssets) => [...prevAssets, ...response.data]);
 
@@ -52,23 +52,23 @@ function SymbolSearchWidget({ activeWatchlist }) {
   }, [searchQuery]); // Trigger when searchQuery changes
 
   const handleAddAsset = (asset) => {
-    
     api.post('user/account/watchlists/list/', {
-      headers: {  // Corrected 'Headers' to 'headers'
-        Authorization: `Bearer ${isAuth.access}`,  // Authorization header
+      headers: {
+        Authorization: `Bearer ${isAuth.access}`,
       },
-      data: {  // 'data' should be inside the body of the POST request
-        watchlistId: activeWatchlist,  // Pass the current activeWatchlist ID
-        asset: asset,  // Pass the asset data
+      data: {
+        watchlistId: activeWatchlist,
+        asset: asset,
       }
     })
-    .then((response) => {
-      console.log('Asset added successfully', response.data);
-    })
-    .catch((error) => {
-      console.error('Error adding asset:', error);
-    });
-
+      .then((response) => {
+        console.log('Asset added successfully', response.data);
+        // Call the callback function to refresh watchlist
+        onAssetAdded();
+      })
+      .catch((error) => {
+        console.error('Error adding asset:', error);
+      });
   };
 
   // Infinite scroll functionality
@@ -114,12 +114,12 @@ function SymbolSearchWidget({ activeWatchlist }) {
           <ul>
             {assets.map((asset) => (
               <li key={asset.id} className="flex items-center justify-between py-2">
-                <span>{asset.asset_name}</span>
+                <span>{asset.name}</span>
                 <button
                   className="ml-4 bg-blue-500 text-white rounded-md p-2"
                   onClick={() => handleAddAsset(asset)}
                 >
-                  <i className="fas fa-plus"></i> 
+                  <i className="fas fa-plus"></i>
                 </button>
               </li>
             ))}
