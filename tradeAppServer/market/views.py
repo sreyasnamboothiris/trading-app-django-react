@@ -14,11 +14,10 @@ class AssetSearchView(APIView):
 
         # Filter assets based on the search query (case insensitive)
         if query:
-            assets = Asset.objects.filter(asset_name__istartswith=query)
-            
+            assets = Asset.objects.filter(name__istartswith=query)
+
         else:
             assets = Asset.objects.all()  # Return all assets if no query is provided
-            
 
         # Serialize the assets data
         serializer = AssetSerializer(assets, many=True)

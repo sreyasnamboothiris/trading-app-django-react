@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'mpadmin',
     'market',
     'django_celery_beat',
+    'channels',
 ]
 
 
@@ -118,6 +119,7 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'tradeAppServer.asgi.application'
 WSGI_APPLICATION = 'tradeAppServer.wsgi.application'
 
 # Media files (User-uploaded content)
@@ -217,3 +219,13 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# Add Channels configuration
+ASGI_APPLICATION = 'tradeAppServer.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}

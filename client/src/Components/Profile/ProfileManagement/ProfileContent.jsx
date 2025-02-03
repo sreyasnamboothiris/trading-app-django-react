@@ -11,6 +11,7 @@ function ProfileContent() {
   const [account,setAccount] = useState(null)
   const isAuth = useSelector((state) => state.auth.isAuth);
   const dispatch = useDispatch();
+  const { setSelectedAsset } = useSelector((state) => state.homeData);
   const [darkMode, setDarkMode] = useState(() => {
     // Check user's preferred mode from localStorage or system settings
     return (
@@ -27,9 +28,10 @@ function ProfileContent() {
       }
     })
     .then((response)=>{
-      console.log(response.data)
+      console.log(response.data,'heoos')
       setUser(response.data.user)
       setAccount(response.data.account)
+      setSelectedAsset(response.data.account.default_asset)
       
     })
     .catch((error) => {
