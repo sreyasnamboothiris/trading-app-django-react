@@ -171,6 +171,9 @@ class OTP(models.Model):
         return datetime.now() > self.expires_at
     
 
+
+
+
 class Account(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="accounts")
     name = models.CharField(max_length=100)  # Account Name
@@ -181,6 +184,7 @@ class Account(models.Model):
         default=0.0,
         validators=[MinValueValidator(0.0, message=("Funds must be a positive amount."))]
     )
+    default_asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name="default_asset", default=Asset.objects.filter(name="Nifty 50",).first().id)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

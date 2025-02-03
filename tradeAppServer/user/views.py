@@ -35,7 +35,6 @@ load_dotenv()
 class UserSignupView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     authentication_classes = []
-
     def post(self, request):
         username = request.data.get('username')
         email = request.data.get('email')
@@ -407,14 +406,14 @@ class AccountView(generics.GenericAPIView):
 ##### User watchlist #####
 class WatchlistView(APIView):
     def get(self, request):
-        
+
         try:
             # Fetch all watchlists for the authenticated user
             watchlists = Watchlist.objects.filter(
                 user=request.user).order_by('name')  # Alphabetical order
             # Serialize the data
             serializer = WatchlistSerializer(watchlists, many=True)
-            
+            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -495,7 +494,7 @@ class WatchlistItemView(APIView):
 
         # Serialize the watchlist items
         serializer = WatchlistItemSerializer(watchlist_items, many=True)
-
+        print(serializer.data, 'ivde vannu, watlistitems')
         return Response(serializer.data, status=200)
 
     def post(self, request):
@@ -538,6 +537,40 @@ class WatchlistItemView(APIView):
         except Exception as e:
             # Handle any other errors that may arise
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, watchlistId, assetId):
+        try:
+            # Find the watchlist item
+            watchlist_item = WatchlistItem.objects.get(
+                watchlist_id=watchlistId,
+                asset_id=assetId
+            )
+
+            # Check if the user owns this watchlist
+            if watchlist_item.watchlist.user != request.user:
+                return Response(
+                    {"error": "You don't have permission to delete this item"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Delete the watchlist item
+            watchlist_item.delete()
+
+            return Response(
+                {"message": "Asset removed from watchlist successfully"},
+                status=status.HTTP_200_OK
+            )
+
+        except WatchlistItem.DoesNotExist:
+            return Response(
+                {"error": "Asset not found in watchlist"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 ##### Others #####
 
@@ -617,6 +650,3 @@ class TestApi(APIView):
         # Perform partial update to resource
         data['message'] = 'Data has been partially updated!'
         return Response(data, status=status.HTTP_200_OK)
-
-
-

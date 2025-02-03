@@ -25,6 +25,7 @@ urlpatterns = [
 
     path('account/watchlists/list/',views.WatchlistItemView.as_view(),name='watchlist-update'),
     path('account/watchlists/list/<int:watchlistId>/',views.WatchlistItemView.as_view(),name='watchlist-update'),
+    path('account/watchlists/list/<int:watchlistId>/<int:assetId>/', views.WatchlistItemView.as_view(), name='watchlist-item-delete'),
 
     # other details
     path('currency/list/', views.CurrencyListView.as_view(), name='currency-list'),

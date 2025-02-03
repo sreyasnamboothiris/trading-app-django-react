@@ -4,7 +4,7 @@ import re
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-
+from market.models import Asset
 from market.serializers import AssetSerializer
 from .models import CustomUser, Currency, Account, TemporaryUser, Watchlist, WatchlistItem
 from django.core.exceptions import ValidationError
@@ -101,8 +101,13 @@ class CurrencySerializer(serializers.ModelSerializer):
         model = Currency
         fields = ['id', 'name', 'symbol', 'is_active']
 
+class AssetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Asset
+        fields = ['id', 'name', 'asset_type', 'symbol', 'tradingview_symbol', 'last_traded_price', 'percent_change', 'net_change', 'is_crypto']
 
 class AccountSerializer(serializers.ModelSerializer):
+    default_asset = AssetSerializer(read_only=True)
     funds = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -111,7 +116,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ['id', 'name', 'currency', 'funds', 'is_active']
+        fields = ['id', 'name', 'currency', 'funds', 'is_active', 'default_asset']
 
     def validate(self, data):
         user = self.context['request'].user
@@ -124,6 +129,7 @@ class AccountSerializer(serializers.ModelSerializer):
                 })
 
         return data
+
 
 
 class CurrencySerializer(serializers.ModelSerializer):
