@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../interceptors'; // Assuming this is your axios instance
 import { useSelector } from 'react-redux';
-import { setSelectedAsset, setWatchlistData } from '../../store/homeDataSlice';
+import { setSelectedAsset, setWatchlistData, updateIsOrder } from '../../store/homeDataSlice';
 import { useDispatch } from 'react-redux';
+import OrderModal from '../Positions/OrderModal';
 
 function WatchlistItems({ watchlistId }) {
   const [stocks, setStocks] = useState([]); // Store stocks
@@ -11,19 +12,37 @@ function WatchlistItems({ watchlistId }) {
   const [priceData, setPriceData] = useState(null); // Store real-time price data
   const isAuth = useSelector((state) => state.auth.isAuth);
   const dispatch = useDispatch();
-  const { selectedAsset, watchlistData } = useSelector((state) => state.homeData);
+  const orderModalOn = useState(null)
+  const { selectedAsset, watchlistData,orderAsset } = useSelector((state) => state.homeData);
 
-  const handleAssetClick = (asset) => {
+  const handleAssetClick = (asset, label) => {
     // Dispatch the selected asset to Redux store
+    if (label === 'Buy') {
+      handleOrderClick(asset, label)
+    } else if (label === 'Chart') {
+
+      handleChartClick(asset);
+    }
+
+
+  };
+  const handleOrderClick = (asset, label) => {
+    if (label === 'Buy') {
+      
+      dispatch(updateIsOrder(asset))
+      console.log(orderAsset)
+    }
+  }
+  const handleChartClick = (asset) => {
+
     dispatch(setSelectedAsset(asset));
     dispatch(setWatchlistData(stocks));
     console.log(asset, 'asset')
-  };
-
+  }
   const handleClick = (asset) => {
     // Update the selected asset in Redux store
     dispatch(setSelectedAsset(asset));
- 
+
   };
   useEffect(() => {
     // Check if watchlistId is available
@@ -102,6 +121,7 @@ function WatchlistItems({ watchlistId }) {
   return (
     <div className="w-full">
       {/* Loading state */}
+      {!orderModalOn && <OrderModal />}
       {loading && <div>Loading...</div>}
 
       {/* Error state */}
@@ -145,7 +165,8 @@ function WatchlistItems({ watchlistId }) {
                       {label}
                     </span>
                     <button
-                      onClick={label === 'Chart' ? () => handleAssetClick(stock.asset) : undefined}
+                      onClick={() => handleAssetClick(stock.asset, label)}
+
                       className={`bg-gray-100 text-sm font-bold py-1 rounded-md w-8 ${label === 'Buy'
                         ? 'bg-white hover:bg-green-700 text-green-500 hover:text-white'
                         : label === 'Sell'
