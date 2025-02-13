@@ -10,6 +10,8 @@ urlpatterns = [
     path('mp-admin/',include('mpadmin.urls')),
     path('accounts/', include('allauth.urls')),
     path('market/',include('market.urls')),
+    path('trade/',include('trade.urls')),
+    
 ]
 
 

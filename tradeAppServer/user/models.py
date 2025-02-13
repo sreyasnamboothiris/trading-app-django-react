@@ -242,3 +242,7 @@ class WatchlistItem(models.Model):
 
     def __str__(self):
         return f"Asset: {self.asset.name} in {self.watchlist.name}"
+
+
+
+    

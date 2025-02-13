@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { act } from 'react';
 
 
 const initialState = {
@@ -10,9 +11,10 @@ const initialState = {
     last_traded_price: '19500.00',
     percent_change: '0.00',
     net_change: '0.00',
-    is_crypto: false
+    is_crypto: false,
   },
   watchlistData: [],
+  orderAsset:null,
   loading: false,
   error: null
 };
@@ -23,6 +25,9 @@ const homeDataSlice = createSlice({
   reducers: {
     setSelectedAsset: (state, action) => {
       state.selectedAsset = action.payload;
+    },
+    updateIsOrder:(state,action) => {
+        state.orderAsset = action.payload
     },
     setWatchlistData: (state, action) => {
       state.watchlistData = action.payload;
@@ -40,7 +45,8 @@ export const {
   setSelectedAsset,
   setWatchlistData, 
   setLoading,
-  setError
+  setError,
+  updateIsOrder
 } = homeDataSlice.actions;
 
 export default homeDataSlice.reducer;

@@ -11,6 +11,7 @@ import Currency from './Pages/Admin/Currency';
 import { ToastContainer } from 'react-toastify';
 import Home from './Pages/Home/Home';
 import Test from './Pages/Test/Test';
+import OrderPage from './Pages/Positions/OrderPage';
 
 function App() {
   return (
@@ -34,7 +35,7 @@ function App() {
             <Route path='home/' element={<Home />} />
 
             <Route path='admin/currency' element={<Currency />} />
-
+            <Route path='user/order' element={<OrderPage/>}/>
             <Route path='test/' element={<Test />} />
           </Routes>
         </Router>

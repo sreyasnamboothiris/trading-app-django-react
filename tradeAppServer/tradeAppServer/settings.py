@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'user',
     'corsheaders',
+    'trade',
     'mpadmin',
     'market',
     'django_celery_beat',
