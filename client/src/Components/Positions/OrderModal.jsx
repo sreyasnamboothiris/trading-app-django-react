@@ -6,8 +6,9 @@ import { updateIsOrder } from '../../store/homeDataSlice';
 import api from '../../interceptors';
 
 const OrderModal = () => {
+  const user = useSelector((state) => state.auth.isAuth);
   const [activeTab, setActiveTab] = useState('normal');
-  const [productType, setProductType] = useState('Intraday');
+  const [productType, setProductType] = useState('intraday');
   const [orderSettings, setOrderSettings] = useState({
     isBuy: true,
     isMarketOrder: false,
@@ -22,54 +23,69 @@ const OrderModal = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const toggleOrderSetting = useCallback((setting) => {
-    console.log(setting, 'setting print cheyunu')
     setOrderSettings((prevSettings) => ({
       ...prevSettings,
       [setting]: !prevSettings[setting],
-
     }));
-    console.log(orderSettings)
   }, []);
 
   const onSubmit = (data) => {
-
-
-
+    // Build the data object to send to the backend
     const updatedData = {
       ...data,
-      productType, // Include productType in the submitted data
-      orderType: orderSettings.isBuy ? 'Buy' : 'Sell', // Optional: Include if you want to know Buy/Sell
+      order_type: productType, // "Intraday" or "Delivery"
+      trade_type: orderSettings.isBuy ? 'buy' : 'sell',
+      asset_id: orderAsset.id, // <-- Added asset_id from redux store
     };
-    if (orderSettings.isMarketOrder){
+
+    // If market order is selected, set price to null.
+    if (orderSettings.isMarketOrder) {
       updatedData.price = null;
     }
-    if (!orderSettings.enableStopLoss){
-      updatedData.stopLoss = null;
-      updatedData.stopLossTrigger = null;
+
+    // Handle Stop Loss values:
+    if (!orderSettings.enableStopLoss) {
+      // If stop loss is disabled, remove both values.
+      updatedData.stop_loss = null;
+      updatedData.stop_loss_trigger = null;
     } else {
-      if(orderSettings.isMarketStopLoss){
-        updatedData.stopLoss = null
+      // If enabled but set as market, remove the stop loss value.
+      if (orderSettings.isMarketStopLoss) {
+        updatedData.stop_loss = null;
       }
+      // Else, the user entered stop loss will be sent.
     }
-    if (!orderSettings.enableTarget){
-      updatedData.targetPrice = null;
-      updatedData.targetTrigger = null;
+
+    // Handle Target Price values:
+    if (!orderSettings.enableTarget) {
+      updatedData.target_price = null;
+      // If you don't use targetTrigger on the backend, you can remove it.
+      updatedData.target_price_trigger = null;
     } else {
-      if(orderSettings.isMarketTarget){
-        updatedData.targetPrice = null
+      if (orderSettings.isMarketTarget) {
+        updatedData.target_price = null;
       }
+      // Else, the user-entered targetPrice (and optionally targetTrigger) will be sent.
     }
-    
-    
-    api.post('trade/test/', updatedData)
+
+    // Post the data to the backend
+    api.post('trade/test/', updatedData,{
+      headers: {
+        "Authorization":`Bearer ${user.access}`,
+        'Content-Type': 'application/json',
+        },
+    })
       .then((response) => {
-        console.log('success');
+        console.log(user)
+        console.log('Order created successfully');
         dispatch(updateIsOrder(null));
       })
       .catch((error) => {
-        console.log(error);
+        console.log(user)
+        console.error(error);
       });
-    alert(JSON.stringify(updatedData, null, 2)); // Show updated JSON
+
+    alert(JSON.stringify(updatedData, null, 2)); // Debug: show the JSON being sent.
   };
 
   const handleCancelButton = () => {
@@ -77,6 +93,7 @@ const OrderModal = () => {
   };
 
   return (
+
     <motion.div
       drag
       dragMomentum={false}
@@ -88,7 +105,9 @@ const OrderModal = () => {
           <div className="flex items-center gap-3">
             <span className="text-lg font-medium">{orderAsset.name}</span>
             <span className="text-red-400">{orderAsset.last_traded_price}</span>
-            <span className="text-gray-400"> {orderAsset.percent_change || '0.00'}% ({orderAsset.net_change || '0.00'})</span>
+            <span className="text-gray-400">
+              {orderAsset.percent_change || '0.00'}% ({orderAsset.net_change || '0.00'})
+            </span>
           </div>
           <div className="flex bg-white rounded-2xl overflow-hidden w-max p-1">
             <button
@@ -130,7 +149,7 @@ const OrderModal = () => {
           <div>
             <label className="block mb-2">Product Type</label>
             <div className="flex bg-white rounded-2xl overflow-hidden w-max p-2">
-              {['Intraday', 'Delivery'].map((type) => (
+              {['intraday', 'delivery'].map((type) => (
                 <button
                   key={type}
                   type="button"
@@ -169,7 +188,7 @@ const OrderModal = () => {
               <button
                 type="button"
                 onClick={() => toggleOrderSetting('isMarketOrder')}
-                className={`w-8 h-4 rounded-full  ${orderSettings.isMarketOrder ? 'bg-blue-900' : 'bg-gray-600'}`}
+                className={`w-8 h-4 rounded-full ${orderSettings.isMarketOrder ? 'bg-blue-900' : 'bg-gray-600'}`}
               >
                 <div
                   className={`w-4 h-4 bg-white rounded-full transform ${orderSettings.isMarketOrder ? 'translate-x-4' : 'translate-x-0'} transition-transform`}
@@ -191,12 +210,11 @@ const OrderModal = () => {
                 {orderSettings.enableStopLoss ? 'Disable' : 'Enable'}
               </button>
             </div>
-
             {orderSettings.enableStopLoss && (
               <>
                 <input
                   type="number"
-                  {...register('stopLoss')}
+                  {...register('stop_loss')}
                   className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
                   step="0.5"
                   disabled={orderSettings.isMarketStopLoss}
@@ -206,7 +224,7 @@ const OrderModal = () => {
                   <button
                     type="button"
                     onClick={() => toggleOrderSetting('isMarketStopLoss')}
-                    className={`w-8 h-4 rounded-full  ${orderSettings.isMarketStopLoss ? 'bg-blue-900' : 'bg-gray-600'}`}
+                    className={`w-8 h-4 rounded-full ${orderSettings.isMarketStopLoss ? 'bg-blue-900' : 'bg-gray-600'}`}
                   >
                     <div
                       className={`w-4 h-4 bg-white rounded-full transform ${orderSettings.isMarketStopLoss ? 'translate-x-4' : 'translate-x-0'} transition-transform`}
@@ -218,11 +236,10 @@ const OrderModal = () => {
                 <input
                   type="number"
                   defaultValue="1045.00"
-                  {...register('stopLossTrigger')}
+                  {...register('stop_loss_trigger')}
                   className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
                   step="0.5"
                 />
-
               </>
             )}
           </div>
@@ -244,7 +261,7 @@ const OrderModal = () => {
                 <input
                   type="number"
                   defaultValue="1075.00"
-                  {...register('targetPrice')}
+                  {...register('target_price')}
                   className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
                   step="0.5"
                   disabled={orderSettings.isMarketTarget}
@@ -254,7 +271,7 @@ const OrderModal = () => {
                   <button
                     type="button"
                     onClick={() => toggleOrderSetting('isMarketTarget')}
-                    className={`w-8 h-4 rounded-full  ${orderSettings.isMarketTarget ? 'bg-blue-900' : 'bg-gray-600'}`}
+                    className={`w-8 h-4 rounded-full ${orderSettings.isMarketTarget ? 'bg-blue-900' : 'bg-gray-600'}`}
                   >
                     <div
                       className={`w-4 h-4 bg-white rounded-full transform ${orderSettings.isMarketTarget ? 'translate-x-4' : 'translate-x-0'} transition-transform`}
@@ -266,7 +283,7 @@ const OrderModal = () => {
                 <input
                   type="number"
                   defaultValue="1076.00"
-                  {...register('targetTrigger')}
+                  {...register('target_price_trigger')}
                   className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
                   step="0.5"
                 />
@@ -275,7 +292,7 @@ const OrderModal = () => {
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit and Cancel Buttons */}
         <div className="flex mt-6 justify-between">
           <button
             type="button"
@@ -297,3 +314,5 @@ const OrderModal = () => {
 };
 
 export default OrderModal;
+
+
