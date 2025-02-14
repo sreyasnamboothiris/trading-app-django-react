@@ -28,10 +28,8 @@ api.interceptors.response.use(
                 // Dispatch the updated token to Redux store
                 const state = store.getState()
                 const authState = state.auth
-                console.log(authState,'ivde authstate and thaze response.data')
-                console.log(response.data)
+                
                 store.dispatch(isAuthenticated(response.data));
-                console.log(response.data,'ivde response.data conosle cheyunu')
                 
 
                 // Retry the original request with the new access token

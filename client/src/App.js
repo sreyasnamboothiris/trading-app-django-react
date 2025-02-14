@@ -12,6 +12,8 @@ import { ToastContainer } from 'react-toastify';
 import Home from './Pages/Home/Home';
 import Test from './Pages/Test/Test';
 import OrderPage from './Pages/Positions/OrderPage';
+import Chat from './Pages/Admin/Chat';
+import UserChat from './Pages/Profile/UserChat';
 
 function App() {
   return (
@@ -36,7 +38,10 @@ function App() {
 
             <Route path='admin/currency' element={<Currency />} />
             <Route path='user/order' element={<OrderPage/>}/>
+            <Route path='user/chat/' element={<UserChat/>} />
             <Route path='test/' element={<Test />} />
+
+            <Route path='admin/chat/' element={<Chat/>}/>
           </Routes>
         </Router>
       </div>

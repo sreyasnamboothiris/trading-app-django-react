@@ -71,28 +71,33 @@ function WatchlistItems({ watchlistId }) {
 
   // WebSocket connection for real-time updates
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8000/ws/assets/");
-
+    const socket = new WebSocket("ws://127.0.0.1:8000/ws/assets/");
+  
     socket.onopen = () => {
-      // Send watchlist_id after connection opens
-      socket.send(JSON.stringify({ watchlist_id: watchlistId }));
+      if (stocks.length > 0) {
+        const watchlistSymbols = stocks.map(stock => stock.asset.symbol);
+        socket.send(JSON.stringify({ watchlist_symbols: watchlistSymbols }));
+      }
     };
-
+  
     socket.onmessage = (event) => {
+      console.log('hello')
       const data = JSON.parse(event.data);
-      setStocks(data.assets)
-
+      setStocks(prevStocks =>
+        prevStocks.map(stock =>
+          stock.asset.symbol === data.symbol ? { ...stock, asset: { ...stock.asset, ...data } } : stock
+        )
+      );
     };
-
+  
     socket.onerror = (error) => {
       console.error("WebSocket Error:", error);
     };
-
-    // Cleanup when component unmounts
+  
     return () => {
       socket.close();
     };
-  }, [watchlistId]); // Reconnect WebSocket if watchlistId changes
+  }, [stocks]);  // Reconnect WebSocket whenever stocks change // Reconnect WebSocket if watchlistId changes
 
   const handleDelete = async (assetId) => {
     try {

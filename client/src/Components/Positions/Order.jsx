@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../interceptors';
+import { useSelector } from 'react-redux';
 
 function Order() {
   const [activeTab, setActiveTab] = useState('openOrders');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const ordersList = [
-    { id: 1, stock: "AAPL", executedQty: 10, ltp: 145.32, orderType: "Market", orderPrice: 144.50 },
-    { id: 2, stock: "GOOGL", executedQty: 5, ltp: 2800.75, orderType: "Limit", orderPrice: 2795.00 },
-    { id: 3, stock: "TSLA", executedQty: 2, ltp: 700.45, orderType: "Stop Loss", orderPrice: 695.00 },
-  ];
+  const [orders, setOrders] = useState([]);
+  const user = useSelector((state) => state.auth.isAuth)
 
-  const filteredOrders = ordersList.filter(order =>
-    order.stock.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Fetch orders when the component mounts.
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        // Adjust the endpoint as needed.
+        const response = await api.get('trade/test/', {
+          headers: {
+            'Authorization': `Bearer ${user.access}`
+          }
+        });
+        // If you use pagination, you might need to do:
+        // setOrders(response.data.results);
+        console.log(response.data, 'jhfsd')
+        setOrders(response.data);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  // Filter orders by stock symbol (assuming the API returns an "asset" field).
+
+
 
   return (
     <div className="p-1">
@@ -22,11 +42,14 @@ function Order() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded font-bold text-lg relative transition-all ${
-              activeTab === tab ? 'text-[#68A875] font-bold text-xl' : 'text-white'
-            }`}
+            className={`px-4 py-2 rounded font-bold text-lg relative transition-all ${activeTab === tab ? 'text-[#68A875] font-bold text-xl' : 'text-white'
+              }`}
           >
-            {tab === "openOrders" ? "Open Orders" : tab === "positions" ? "Positions" : "Order History"}
+            {tab === "openOrders"
+              ? "Open Orders"
+              : tab === "positions"
+                ? "Positions"
+                : "Order History"}
             {activeTab === tab && (
               <div className="absolute bottom-1 left-0 right-0 h-[.5px] bg-[#68A875] rounded"></div>
             )}
@@ -35,56 +58,34 @@ function Order() {
       </div>
 
       {/* Search Bar */}
-      <div className="mb-2">
-        <input
-          type="text"
-          placeholder="Search stock..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2 rounded-lg bg-[#002F42] text-white border border-gray-600 focus:outline-none focus:border-[#68A875]"
-        />
-      </div>
 
-      {/* Orders Table */}
+
+      {/* List View */}
       <div className="mt-1">
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-[#002F42] text-white rounded-[18px] overflow-hidden">
-            {/* Table Head */}
-            <thead className="bg-[#002F42]">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Stock Name</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Executed Qty</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">LTP</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Order Type</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Order Price</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold">Action</th>
-              </tr>
-            </thead>
-            {/* Table Body */}
-            <tbody>
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <tr key={order.id} className="bg-black hover:bg-gray-700 transition-colors">
-                    <td className="px-4 py-4 text-sm">{order.stock}</td>
-                    <td className="px-4 py-4 text-sm">{order.executedQty}</td>
-                    <td className="px-4 py-4 text-sm">${order.ltp.toFixed(2)}</td>
-                    <td className="px-4 py-4 text-sm">{order.orderType}</td>
-                    <td className="px-4 py-4 text-sm">${order.orderPrice.toFixed(2)}</td>
-                    <td className="px-4 py-4 text-sm">
-                      <button className="text-blue-400 hover:text-blue-600">Edit</button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="px-4 py-4 text-center text-sm font-medium">
-                    No orders found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {orders.length > 0 ? (
+          orders.map((order) => (
+            <div
+              key={order.id}
+              className="mb-4 p-4 bg-black rounded-lg text-white shadow-md"
+            >
+              <div><strong>Stock:</strong> {order.asset}</div>
+              <div><strong>Quantity:</strong> {order.quantity}</div>
+              <div>
+                <strong>Price:</strong>{" "}
+                {order.price ? `$${Number(order.price).toFixed(2)}` : 'Market Order'}
+              </div>
+              <div><strong>Order Type:</strong> {order.order_type}</div>
+              <div><strong>Trade Type:</strong> {order.trade_type}</div>
+              <div><strong>Status:</strong> {order.status}</div>
+              <div>
+                <strong>Created:</strong>{" "}
+                {order.created_at}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-white">No orders found</div>
+        )}
       </div>
     </div>
   );
