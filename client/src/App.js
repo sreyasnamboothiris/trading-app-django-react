@@ -38,10 +38,10 @@ function App() {
 
             <Route path='admin/currency' element={<Currency />} />
             <Route path='user/order' element={<OrderPage/>}/>
-            <Route path='user/chat/' element={<UserChat/>} />
+            {/* <Route path='user/chat/' element={<UserChat/>} /> */}
             <Route path='test/' element={<Test />} />
 
-            <Route path='admin/chat/' element={<Chat/>}/>
+            {/* <Route path='admin/chat/' element={<Chat/>}/> */}
           </Routes>
         </Router>
       </div>
