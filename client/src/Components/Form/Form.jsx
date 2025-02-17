@@ -77,7 +77,7 @@ function Form(props) {
 
   return (
     <div>
-      <div className="flex flex-col items-center justify-center mt-24 bg-white">
+      <div className="flex flex-col items-center justify-center mt-2 bg-white">
         <div className="w-96 p-6 bg-white">
           <h2 className="text-2xl font-bold text-center text-black mb-6">
             {isLogin ? "Login" : "Sign Up"}
