@@ -7,13 +7,13 @@ import OrderModal from '../Positions/OrderModal';
 
 function WatchlistItems({ watchlistId }) {
   const [stocks, setStocks] = useState([]); // Store stocks
+  const [stockPrice,setStockPrice] = useState({})
   const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state
-  const [priceData, setPriceData] = useState(null); // Store real-time price data
+  const [error, setError] = useState(null); // Error state // Store real-time price data
   const isAuth = useSelector((state) => state.auth.isAuth);
   const dispatch = useDispatch();
   const orderModalOn = useState(null)
-  const { selectedAsset, watchlistData,orderAsset } = useSelector((state) => state.homeData);
+  const { orderAsset } = useSelector((state) => state.homeData);
 
   const handleAssetClick = (asset, label) => {
     // Dispatch the selected asset to Redux store
@@ -57,6 +57,20 @@ function WatchlistItems({ watchlistId }) {
           });
 
           setStocks(response.data);
+          console.log(response.data)
+          const priceMap = {};
+          response.data.forEach((stock) => {
+            if(stock.asset.symbol){
+              priceMap[stock.asset.symbol] = stock.asset.last_traded_price
+            } else {
+              priceMap[stock.asset.smart_api_token] = stock.asset.last_traded_price
+            } // Assuming each stock object has 'symbol' and 'price'
+          });
+
+
+          setStockPrice(priceMap);
+          console.log(priceMap)
+
         } catch (error) {
           console.log(error, 'Error fetching stock data');
           setError('Error fetching stock data'); // Handle error
@@ -75,7 +89,7 @@ function WatchlistItems({ watchlistId }) {
   
     socket.onopen = () => {
       if (stocks.length > 0) {
-        const watchlistSymbols = stocks.map(stock => stock.asset.symbol);
+        const watchlistSymbols = stocks.map(stock => stock.asset.symbol?stock.asset.symbol:stock.asset.smart_api_token);
         socket.send(JSON.stringify({ watchlist_symbols: watchlistSymbols }));
       }
     };
@@ -83,12 +97,16 @@ function WatchlistItems({ watchlistId }) {
     socket.onmessage = (event) => {
       console.log('hello')
       const data = JSON.parse(event.data);
-      setStocks(prevStocks =>
-        prevStocks.map(stock =>
-          stock.asset.symbol === data.symbol ? { ...stock, asset: { ...stock.asset, ...data } } : stock
-        )
-      );
-    };
+      const { symbol, price } = data;
+
+      // Update the stockPrice state
+      setStockPrice(prevPriceData => ({
+          ...prevPriceData,
+          [symbol]: price
+        }));
+        
+        console.log(stockPrice,data.symbol,stockPrice[data.symbol])
+      };
   
     socket.onerror = (error) => {
       console.error("WebSocket Error:", error);
@@ -147,7 +165,7 @@ function WatchlistItems({ watchlistId }) {
               <div className='flex flex-col items-end'>
                 {/* Last Traded Price */}
                 <div className={`text-xl font-bold ${getPriceColor(stock.asset.net_change)}`}>
-                  ₹{stock.asset.last_traded_price}
+                  ₹{stock.asset.symbol?stockPrice[stock.asset.symbol] : stockPrice[stock.asset.smart_api_token]}
                 </div>
                 {/* Net Change and Percentage Change */}
                 <div className="flex text-sm space-x-2">

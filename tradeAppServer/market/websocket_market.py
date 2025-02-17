@@ -67,18 +67,10 @@ TOTP_CODE = totp.now()
 smart_api = SmartConnect(api_key=API_KEY)
 data = smart_api.generateSession(CLIENT_CODE, MPIN, TOTP_CODE)
 print(data)
-# ✅ Replace these with your actual details
-LOCAL_IP = "172.29.208.1"
-MAC = '00-15-5D-98-2D-E5'
-PUBLIC_IP = '2406:8800:81:dae1:a8fb:5430:4823:f1a8'
-CLIENT_ID = "S671931"
-PASSWORD = "Sre@8281"
-MPIN = "8129"
-SECRET_KEY = 'P3AYFAQUPSVDCYJ6KSE4ILROQQ'
-PRIVATE_KEY = 'QTg9v9zT'  # API Key
+
 
 # ✅ Generate TOTP (One-Time Password)
-totp = pyotp.TOTP(SECRET_KEY)
+totp = pyotp.TOTP(TOTP_SECRET_KEY)
 current_otp = totp.now()
 
 if "data" in data and "feedToken" in data["data"]:
@@ -92,7 +84,6 @@ else:
 # ✅ WebSocket Configuration
 correlation_id = "nishant_123_qwerty"
 mode = 3  # Full Market Data Mode
-token_list = [{"exchangeType": 1, "tokens": ["26009"]}]  # ✅ NIFTY 50 Token
 
 # ✅ Initialize WebSocket with extracted tokens
 sws = SmartWebSocketV2(auth_token=JWT_TOKEN, api_key=API_KEY,
@@ -101,23 +92,23 @@ sws = SmartWebSocketV2(auth_token=JWT_TOKEN, api_key=API_KEY,
 
 def on_data(wsapp, message):
     """Handle incoming market data."""
-    print(f"📊 Ticks at {time.strftime('%H:%M:%S')}: {message}")
+    print(f"Ticks at {time.strftime('%H:%M:%S')}: {message}")
 
 
 def on_open(wsapp):
     """Subscribe to NIFTY 50 on WebSocket open."""
-    print("✅ WebSocket Connection Opened! Subscribing to NIFTY 50...")
+    print("WebSocket Connection Opened! Subscribing to NIFTY 50...")
     sws.subscribe(correlation_id, mode, smartapi_tokens)
 
 
 def on_error(wsapp, error):
     """Handle WebSocket errors."""
-    print(f"❌ WebSocket Error: {error}")
+    print(f"WebSocket Error: {error}")
 
 
 def on_close(wsapp):
     """Reconnect WebSocket if closed."""
-    print("⚠️ WebSocket Closed! Reconnecting in 5 seconds...")
+    print("WebSocket Closed! Reconnecting in 5 seconds...")
     time.sleep(5)
     start_websocket()
 

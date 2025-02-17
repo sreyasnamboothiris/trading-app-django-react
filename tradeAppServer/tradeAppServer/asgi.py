@@ -6,8 +6,8 @@ It exposes the ASGI callable as a module-level variable named ``application``.
 For more information on this file, see
 https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
-
-from market.routing import websocket_urlpatterns
+from market.routing import websocket_urlpatterns as market_websocket_urlpatterns  # Assuming market is your main app
+from chat.routing import websocket_urlpatterns as chat_websocket_urlpatterns
 from channels.security.websocket import AllowedHostsOriginValidator
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
@@ -26,7 +26,8 @@ application = ProtocolTypeRouter({
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
-                websocket_urlpatterns
+                market_websocket_urlpatterns
+                + chat_websocket_urlpatterns
             )
         )
     ),

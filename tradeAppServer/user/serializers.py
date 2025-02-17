@@ -104,7 +104,7 @@ class CurrencySerializer(serializers.ModelSerializer):
 class AssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asset
-        fields = ['id', 'name', 'asset_type', 'symbol', 'tradingview_symbol', 'last_traded_price', 'percent_change', 'net_change', 'is_crypto']
+        fields = ['id', 'name', 'asset_type', 'symbol', 'tradingview_symbol', 'last_traded_price', 'percent_change', 'net_change', 'is_crypto','smart_api_token']
 
 class AccountSerializer(serializers.ModelSerializer):
     default_asset = AssetSerializer(read_only=True)

@@ -1,80 +1,61 @@
-import asyncio
 import json
+import asyncio
+import redis.asyncio as redis
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
 
 class AssetConsumer(AsyncWebsocketConsumer):
-
     async def connect(self):
         """Handle new WebSocket connections."""
-        self.watchlist_id = None
-        self.update_task = None  # Track periodic task
-
-        # Accept the WebSocket connection
+        self.redis = None
+        self.pubsub_task = None
+        self.watchlist_symbols = set()
+        print('connected')
         await self.accept()
+
+        # Async Redis client connection
+        self.redis = redis.Redis.from_url("redis://localhost", decode_responses=True)
 
     async def disconnect(self, close_code):
         """Handle WebSocket disconnection."""
-        if self.update_task:
-            self.update_task.cancel()  # Cancel any existing update task
-        await self.channel_layer.group_discard("asset_updates", self.channel_name)
-
+        if self.pubsub_task:
+            self.pubsub_task.cancel()
+        if self.redis:
+            await self.redis.close()
+        
     async def receive(self, text_data):
-        """Receive messages from frontend and fetch assets for a given watchlist."""
+        """Handle frontend request to watch specific assets."""
         text_data_json = json.loads(text_data)
-        watchlist_id = text_data_json.get("watchlist_id")
+        watchlist_symbols = set(text_data_json.get("watchlist_symbols", []))
+        print(watchlist_symbols)
+        # Only update if the watchlist has changed
+        if watchlist_symbols != self.watchlist_symbols:
+            self.watchlist_symbols = watchlist_symbols
 
-        if watchlist_id:
-            self.watchlist_id = watchlist_id
-            # Fetch the latest watchlist assets
-            assets = await self.get_watchlist_assets(watchlist_id)
+            # Restart subscription to reflect the updated watchlist
+            if self.pubsub_task:
+                self.pubsub_task.cancel()
 
-            # Send assets to the WebSocket
-            await self.send(text_data=json.dumps({"assets": assets}))
+            self.pubsub_task = asyncio.create_task(self.listen_to_price_updates())
 
-            # Start sending periodic updates every second
-            if self.update_task:
-                self.update_task.cancel()  # Cancel previous task if any
-            self.update_task = asyncio.create_task(self.send_periodic_updates())
+    async def listen_to_price_updates(self):
+        """Subscribe to Redis and filter updates before sending to frontend."""
+        pubsub = self.redis.pubsub()
+        await pubsub.subscribe("market_prices")
 
-    async def asset_update(self, event):
-        """Receive and send asset update from group."""
-        await self.send(text_data=json.dumps(event["data"]))
-
-    @database_sync_to_async
-    def get_watchlist_assets(self, watchlist_id):
-        """Fetch assets for a given watchlist from the database."""
-        from user.models import Watchlist, WatchlistItem  # Import here to avoid circular imports
-        from market.models import Asset  # Import here to avoid circular imports
-        from user.serializers import WatchlistItemSerializer
         try:
-            # Fetch the watchlist and its items
-            watchlist = Watchlist.objects.get(id=watchlist_id)
-            watchlist_items = WatchlistItem.objects.filter(watchlist=watchlist)
+            async for message in pubsub.listen():
+                print('inside the message', message)
+                if message["type"] == "message":
+                    data = json.loads(message["data"])
+                    symbol = data.get("symbol")
+                    print(data, symbol, self.watchlist_symbols, 'Filtering data for the watchlist')
 
-            # Fetch asset details for each WatchlistItem
-            assets = WatchlistItemSerializer(watchlist_items,many = True)
-            print(assets.data)
-            return assets.data
-        except Watchlist.DoesNotExist:
-            return []  # Return an empty list if watchlist is not found
-
-    async def send_periodic_updates(self):
-        """Fetch and send assets every second."""
-        try:
-            while True:
-                if not self.watchlist_id:
-                    break  # Stop if watchlist_id is not set
-
-                # Fetch the latest assets for the given watchlist_id
-                assets = await self.get_watchlist_assets(self.watchlist_id)
-                
-                # Send assets to the WebSocket
-                await self.send(text_data=json.dumps({"assets": assets}))
-
-                # Wait for 1 second before fetching and sending the next update
-                await asyncio.sleep(1)
+                    # Only send updates for symbols in the watchlist
+                    if symbol in self.watchlist_symbols:
+                        await self.send(text_data=json.dumps(data))
 
         except asyncio.CancelledError:
+            print("Pub/Sub task canceled or disconnected.")
             pass  # Handle task cancellation gracefully
-
+        except Exception as e:
+            print(f"Error in listening to price updates: {str(e)}")

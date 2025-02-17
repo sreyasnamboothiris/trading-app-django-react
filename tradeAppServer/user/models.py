@@ -94,7 +94,7 @@ class CustomUser(AbstractUser):
             
         ]
     )
-
+    
     
     dark_mode = models.BooleanField(default=True)
     plan = models.CharField(max_length=255, default='free')
@@ -110,6 +110,8 @@ class CustomUser(AbstractUser):
         related_name='customuser_set',
         blank=True
     )
+    def get_active_account(self):
+        return self.accounts.filter(is_active=True).first()
 
     def clean(self):
         # Ensure username does not contain leading or trailing spaces
@@ -184,7 +186,8 @@ class Account(models.Model):
         default=0.0,
         validators=[MinValueValidator(0.0, message=("Funds must be a positive amount."))]
     )
-    default_asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name="default_asset", default=Asset.objects.filter(name="Nifty 50",).first().id)
+    default_asset = models.ForeignKey(Asset, on_delete=models.SET_NULL, related_name="default_asset", default=Asset.objects.filter(name="Nifty 50",).first().id,null=True, 
+    blank=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -207,7 +210,7 @@ class Account(models.Model):
         # Call the full clean method to enforce validation before saving
         self.full_clean()
         super(Account, self).save(*args, **kwargs)
-
+    
     def __str__(self):
         return f"{self.name} - {self.user.username}"
 
