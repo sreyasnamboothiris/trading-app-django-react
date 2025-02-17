@@ -1,0 +1,16 @@
+/* Add these styles to your CSS or inside your JSX as inline styles */
+@keyframes slideUp {
+    0% {
+      transform: translateY(-50px); /* Start from below */
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0); /* End at the normal position */
+      opacity: 1;
+    }
+  }
+  
+  .left-side, .right-side {
+    animation: slideUp .8s ease-out forwards;
+  }
+  
