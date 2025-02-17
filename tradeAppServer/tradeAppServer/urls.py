@@ -11,6 +11,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('market/',include('market.urls')),
     path('trade/',include('trade.urls')),
+    path('chat/',include('chat.urls')),
     
 ]
 

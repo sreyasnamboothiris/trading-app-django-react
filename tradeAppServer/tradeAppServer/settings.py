@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'market',
     'django_celery_beat',
     'channels',
+    'chat',
 ]
 
 
@@ -230,3 +231,14 @@ CHANNEL_LAYERS = {
         },
     },
 }
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Change to your Redis URL if using a remote Redis
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+
