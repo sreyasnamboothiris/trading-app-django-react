@@ -16,21 +16,28 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tradeAppServer.settings")
 django.setup()
 
 # Initialize Redis client
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+redis_client = redis.StrictRedis(
+    host='localhost', port=6379, db=0, decode_responses=True)
+
+
 def store_price(symbol, price, source):
     """Stores price in Redis and publishes an update event."""
     key = f"{source}:{symbol}"
     redis_client.set(key, price)
-    
+
     # Publish update event to Redis Pub/Sub
     update_data = {"symbol": symbol, "price": price, "source": source}
     redis_client.publish("market_prices", json.dumps(update_data))
-    
+    print('Updated data' ,update_data)
+
+
 def on_binance_price_update(symbol, price):
     store_price(symbol, price, "binance")
 
+
 def on_smartapi_price_update(symbol, price):
     store_price(symbol, price, "smartapi")
+
 
 class Command(BaseCommand):
     help = 'Runs the WebSocket for market data'
@@ -77,9 +84,8 @@ class Command(BaseCommand):
                         print(f"Updated {symbol} Price: {price}")
 
                         # Store the updated price in Redis
-                        redis_client.setex(f"binance:{symbol}", 10,price)
+                        redis_client.setex(f"binance:{symbol}", 10, price)
                         on_binance_price_update(symbol, price)
-                        
 
                         print(f"Updated {symbol} Price stored in Redis.")
 
@@ -115,7 +121,8 @@ class Command(BaseCommand):
         # WebSocket Configuration for SmartAPI
         correlation_id = "nishant_123_qwerty"
         mode = 3  # Full Market Data Mode
-        token_list = [{"exchangeType": 1, "tokens": ["26009"]}]  # Example NIFTY 50 Token
+        # Example NIFTY 50 Token
+        token_list = [{"exchangeType": 1, "tokens": ["26009"]}]
 
         # Initialize SmartAPI WebSocket
         sws = SmartWebSocketV2(auth_token=JWT_TOKEN, api_key=API_KEY,
@@ -130,8 +137,7 @@ class Command(BaseCommand):
                 symbol = message['token']
                 price = message['last_traded_price']
                 redis_client.set(f"smartapi:{symbol}", price)
-                on_smartapi_price_update(symbol,price)
-                print(f"Updated {symbol} Price stored in Redis.")
+                on_smartapi_price_update(symbol, price)
 
         def on_open(wsapp):
             """Subscribe to NIFTY 50 on WebSocket open."""
@@ -161,12 +167,12 @@ class Command(BaseCommand):
         # ---------------- Run Both WebSockets ---------------- #
         async def main():
             # Run Binance WebSocket in one task
-            task1 = asyncio.create_task(start_smartapi_websocket())
+            task1 = asyncio.create_task(start_binance_websocket())
             # Run SmartAPI WebSocket in a separate thread
-            #task2 = asyncio.to_thread(start_smartapi_websocket)
+            task2 = asyncio.to_thread(start_smartapi_websocket)
 
             # Run both WebSocket connections concurrently
-            await asyncio.gather(task1)
+            await asyncio.gather(task1,task2)
 
         # Start both WebSocket connections
         asyncio.run(main())

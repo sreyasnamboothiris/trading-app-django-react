@@ -44,7 +44,6 @@ class AssetConsumer(AsyncWebsocketConsumer):
 
         try:
             async for message in pubsub.listen():
-                print('inside the message', message)
                 if message["type"] == "message":
                     data = json.loads(message["data"])
                     symbol = data.get("symbol")
