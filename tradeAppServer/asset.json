@@ -1,0 +1,106 @@
+[
+    {
+        "asset_name": "Dow Jones Industrial Average",
+        "asset_type": "index",
+        "is_crypto": false,
+        "tradingview_symbol": "DJI",
+        "yfinance_symbol": "^DJI",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Nifty 50",
+        "asset_type": "index",
+        "is_crypto": false,
+        "tradingview_symbol": "NIFTY",
+        "yfinance_symbol": "^NSEI",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "NASDAQ Composite",
+        "asset_type": "index",
+        "is_crypto": false,
+        "tradingview_symbol": "IXIC",
+        "yfinance_symbol": "^IXIC",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Reliance Industries",
+        "asset_type": "stock",
+        "is_crypto": false,
+        "tradingview_symbol": "BSE:RELIANCE",
+        "yfinance_symbol": "RELIANCE.BO",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Tata Consultancy Services",
+        "asset_type": "stock",
+        "is_crypto": false,
+        "tradingview_symbol": "BSE:TCS",
+        "yfinance_symbol": "TCS.BO",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Apple Inc.",
+        "asset_type": "stock",
+        "is_crypto": false,
+        "tradingview_symbol": "NASDAQ:AAPL",
+        "yfinance_symbol": "AAPL",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Microsoft Corporation",
+        "asset_type": "stock",
+        "is_crypto": false,
+        "tradingview_symbol": "NASDAQ:MSFT",
+        "yfinance_symbol": "MSFT",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Nestle S.A.",
+        "asset_type": "stock",
+        "is_crypto": false,
+        "tradingview_symbol": "SIX:NESN",
+        "yfinance_symbol": "NESN.SW",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Siemens AG",
+        "asset_type": "stock",
+        "is_crypto": false,
+        "tradingview_symbol": "XETR:SIE",
+        "yfinance_symbol": "SIE.DE",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Bitcoin",
+        "asset_type": "crypto",
+        "is_crypto": true,
+        "tradingview_symbol": "CRYPTO:BTCUSD",
+        "yfinance_symbol": "BTC-USD",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Ethereum",
+        "asset_type": "crypto",
+        "is_crypto": true,
+        "tradingview_symbol": "CRYPTO:ETHUSD",
+        "yfinance_symbol": "ETH-USD",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Binance Coin",
+        "asset_type": "crypto",
+        "is_crypto": true,
+        "tradingview_symbol": "CRYPTO:BNBUSD",
+        "yfinance_symbol": "BNB-USD",
+        "last_traded_price": null
+    },
+    {
+        "asset_name": "Ripple (XRP)",
+        "asset_type": "crypto",
+        "is_crypto": true,
+        "tradingview_symbol": "CRYPTO:XRPUSD",
+        "yfinance_symbol": "XRP-USD",
+        "last_traded_price": null
+    }
+]
