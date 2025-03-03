@@ -161,12 +161,12 @@ class Command(BaseCommand):
         # ---------------- Run Both WebSockets ---------------- #
         async def main():
             # Run Binance WebSocket in one task
-            task1 = asyncio.create_task(start_smartapi_websocket())
+            task1 = asyncio.create_task(start_binance_websocket())
             # Run SmartAPI WebSocket in a separate thread
-            #task2 = asyncio.to_thread(start_smartapi_websocket)
+            task2 = asyncio.to_thread(start_smartapi_websocket)
 
             # Run both WebSocket connections concurrently
-            await asyncio.gather(task1)
+            await asyncio.gather(task1,task2)
 
         # Start both WebSocket connections
         asyncio.run(main())

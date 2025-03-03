@@ -26,7 +26,6 @@ class AssetConsumer(AsyncWebsocketConsumer):
         """Handle frontend request to watch specific assets."""
         text_data_json = json.loads(text_data)
         watchlist_symbols = set(text_data_json.get("watchlist_symbols", []))
-        print(watchlist_symbols)
         # Only update if the watchlist has changed
         if watchlist_symbols != self.watchlist_symbols:
             self.watchlist_symbols = watchlist_symbols
@@ -44,11 +43,9 @@ class AssetConsumer(AsyncWebsocketConsumer):
 
         try:
             async for message in pubsub.listen():
-                print('inside the message', message)
                 if message["type"] == "message":
                     data = json.loads(message["data"])
                     symbol = data.get("symbol")
-                    print(data, symbol, self.watchlist_symbols, 'Filtering data for the watchlist')
 
                     # Only send updates for symbols in the watchlist
                     if symbol in self.watchlist_symbols:
