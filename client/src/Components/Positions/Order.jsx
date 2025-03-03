@@ -18,8 +18,8 @@ function Order() {
             'Authorization': `Bearer ${user.access}`
           }
         });
-        // If you use pagination, you might need to do:
-        // setOrders(response.data.results);
+
+        
         console.log(response.data, 'jhfsd')
         setOrders(response.data);
       } catch (error) {

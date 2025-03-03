@@ -35,7 +35,14 @@ const OrderModal = () => {
       ...data,
       order_type: productType, // "Intraday" or "Delivery"
       trade_type: orderSettings.isBuy ? 'buy' : 'sell',
-      asset_id: orderAsset.id, // <-- Added asset_id from redux store
+      asset_id: orderAsset.id,
+      is_stop_loss: orderSettings.enableStopLoss,
+      is_market_stop_loss: orderSettings.isMarketStopLoss,
+      is_target: orderSettings.enableTarget,
+      is_market_target: orderSettings.isMarketTarget,
+      is_market_price:orderSettings.isMarketOrder
+
+      // <-- Added asset_id from redux store
     };
 
     // If market order is selected, set price to null.
@@ -69,11 +76,11 @@ const OrderModal = () => {
     }
 
     // Post the data to the backend
-    api.post('trade/test/', updatedData,{
+    api.post('trade/test/', updatedData, {
       headers: {
-        "Authorization":`Bearer ${user.access}`,
+        "Authorization": `Bearer ${user.access}`,
         'Content-Type': 'application/json',
-        },
+      },
     })
       .then((response) => {
         console.log(user)
