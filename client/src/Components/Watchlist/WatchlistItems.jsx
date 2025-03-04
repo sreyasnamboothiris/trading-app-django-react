@@ -60,10 +60,10 @@ function WatchlistItems({ watchlistId }) {
           console.log(response.data)
           const priceMap = {};
           response.data.forEach((stock) => {
-            if(stock.asset.symbol){
-              priceMap[stock.asset.symbol] = stock.asset.last_traded_price
-            } else {
+            if(stock.asset.smart_api_token){
               priceMap[stock.asset.smart_api_token] = stock.asset.last_traded_price
+            } else {
+              priceMap[stock.asset.symbol] = stock.asset.last_traded_price
             } // Assuming each stock object has 'symbol' and 'price'
           });
 
@@ -89,7 +89,7 @@ function WatchlistItems({ watchlistId }) {
   
     socket.onopen = () => {
       if (stocks.length > 0) {
-        const watchlistSymbols = stocks.map(stock => stock.asset.symbol?stock.asset.symbol:stock.asset.smart_api_token);
+        const watchlistSymbols = stocks.map(stock => stock.asset.smart_api_token?stock.asset.smart_api_token:stock.asset.symbol);
         socket.send(JSON.stringify({ watchlist_symbols: watchlistSymbols }));
       }
     };
@@ -165,7 +165,7 @@ function WatchlistItems({ watchlistId }) {
               <div className='flex flex-col items-end'>
                 {/* Last Traded Price */}
                 <div className={`text-xl font-bold ${getPriceColor(stock.asset.net_change)}`}>
-                  ₹{stock.asset.symbol?stockPrice[stock.asset.symbol] : stockPrice[stock.asset.smart_api_token]}
+                  ₹{stock.asset.smart_api_token?stockPrice[stock.asset.smart_api_token] : stockPrice[stock.asset.symbol]}
                 </div>
                 {/* Net Change and Percentage Change */}
                 <div className="flex text-sm space-x-2">

@@ -33,7 +33,8 @@ const OrderModal = () => {
     // Build the data object to send to the backend
     const updatedData = {
       ...data,
-      order_type: productType, // "Intraday" or "Delivery"
+      product_type: productType, // "Intraday" or "Delivery"
+      order_type: orderSettings.isMarketOrder ? 'market' : 'limit',
       trade_type: orderSettings.isBuy ? 'buy' : 'sell',
       asset_id: orderAsset.id,
       is_stop_loss: orderSettings.enableStopLoss,
