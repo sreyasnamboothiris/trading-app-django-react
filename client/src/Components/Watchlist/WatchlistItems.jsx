@@ -89,6 +89,7 @@ function WatchlistItems({ watchlistId }) {
   
     socket.onopen = () => {
       if (stocks.length > 0) {
+        console.log('on open')
         const watchlistSymbols = stocks.map(stock => stock.asset.smart_api_token?stock.asset.smart_api_token:stock.asset.symbol);
         socket.send(JSON.stringify({ watchlist_symbols: watchlistSymbols }));
       }

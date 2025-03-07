@@ -41,7 +41,7 @@ const OrderModal = () => {
       is_market_stop_loss: orderSettings.isMarketStopLoss,
       is_target: orderSettings.enableTarget,
       is_market_target: orderSettings.isMarketTarget,
-      is_market_price:orderSettings.isMarketOrder
+      is_market_price: orderSettings.isMarketOrder
 
       // <-- Added asset_id from redux store
     };
@@ -84,11 +84,13 @@ const OrderModal = () => {
       },
     })
       .then((response) => {
+        console.log(updatedData)
         console.log(user)
         console.log('Order created successfully');
         dispatch(updateIsOrder(null));
       })
       .catch((error) => {
+        console.log(updatedData)
         console.log(user)
         console.error(error);
       });
