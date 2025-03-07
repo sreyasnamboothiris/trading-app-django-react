@@ -3,7 +3,7 @@ import asyncio
 import json
 import websockets
 import redis
-
+from trade.services import TradeService
 # Initialize Redis client
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
 
@@ -14,7 +14,10 @@ def store_price(symbol, price, source):
     
     # Publish update event to Redis Pub/Sub
     update_data = {"symbol": symbol, "price": price, "source": source}
+    TradeService.execute_limit_orders(symbol, price)
     redis_client.publish("market_prices", json.dumps(update_data))
+    redis_client.publish(f"market_price:{symbol}", json.dumps(update_data))
+    
 
 def on_binance_price_update(symbol, price):
     store_price(symbol, price, "binance")

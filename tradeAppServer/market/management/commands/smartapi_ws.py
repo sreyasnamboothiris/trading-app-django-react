@@ -74,8 +74,9 @@ class Command(BaseCommand):
             """Subscribe to required tokens after WebSocket opens."""
             from market.models import Asset
             assets = Asset.objects.filter(smart_api_token__isnull=False)
-            smartapi_tokens = [{"exchangeType": 1, "tokens": [asset.smart_api_token]} for asset in assets]
-
+            tokens = [asset.smart_api_token for asset in assets]
+            smartapi_tokens = [{"exchangeType": 1, "tokens":tokens }]
+            print(smartapi_tokens)
             print("✅ WebSocket Connection Opened! Subscribing to SmartAPI tokens...")
             sws.subscribe(correlation_id, mode, smartapi_tokens)
 

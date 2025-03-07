@@ -19,4 +19,14 @@ class Asset(models.Model):
     smart_api_token = models.CharField(max_length=50,null=True,blank=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.symbol}"
+
+    def get_symbol(self):
+        return self.symbol
+
+    def get_resource(self):
+
+        if self.is_crypto:
+            return "binance"
+        else:
+            return "smartapi"
