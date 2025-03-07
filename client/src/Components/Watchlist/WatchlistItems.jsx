@@ -1,229 +1,273 @@
-import React, { useEffect, useState } from 'react';
-import api from '../../interceptors'; // Assuming this is your axios instance
-import { useSelector } from 'react-redux';
-import { setSelectedAsset, setWatchlistData, updateIsOrder } from '../../store/homeDataSlice';
-import { useDispatch } from 'react-redux';
-import OrderModal from '../Positions/OrderModal';
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
+import api from "../../interceptors";
+import { setSelectedAsset, setWatchlistData, updateIsOrder } from "../../store/homeDataSlice";
+import OrderModal from "../Positions/OrderModal";
 
 function WatchlistItems({ watchlistId }) {
-  const [stocks, setStocks] = useState([]); // Store stocks
-  const [stockPrice,setStockPrice] = useState({})
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(null); // Error state // Store real-time price data
+  const [stocks, setStocks] = useState([]);
+  const [stockPrice, setStockPrice] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [darkMode, setDarkMode] = useState(() =>
+    localStorage.theme === "dark" ||
+    (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
+  const [activeTooltip, setActiveTooltip] = useState(null);
   const isAuth = useSelector((state) => state.auth.isAuth);
-  const dispatch = useDispatch();
-  const orderModalOn = useState(null)
   const { orderAsset } = useSelector((state) => state.homeData);
+  const dispatch = useDispatch();
 
-  const handleAssetClick = (asset, label) => {
-    // Dispatch the selected asset to Redux store
-    if (label === 'Buy') {
-      handleOrderClick(asset, label)
-    } else if (label === 'Chart') {
-
-      handleChartClick(asset);
-    }
-
-
-  };
-  const handleOrderClick = (asset, label) => {
-    if (label === 'Buy') {
-      
-      dispatch(updateIsOrder(asset))
-      console.log(orderAsset)
-    }
-  }
-  const handleChartClick = (asset) => {
-
-    dispatch(setSelectedAsset(asset));
-    dispatch(setWatchlistData(stocks));
-    console.log(asset, 'asset')
-  }
-  const handleClick = (asset) => {
-    // Update the selected asset in Redux store
-    dispatch(setSelectedAsset(asset));
-
-  };
+  // Sync dark mode
   useEffect(() => {
-    // Check if watchlistId is available
-    if (watchlistId) {
-      const fetchWatchlistItems = async () => {
-        try {
-          setLoading(true); // Start loading
-          const response = await api.get(`/user/account/watchlists/list/${watchlistId}/`, {
-            headers: {
-              Authorization: `Bearer ${isAuth.access}`,
-            },
-          });
-
-          setStocks(response.data);
-          console.log(response.data)
-          const priceMap = {};
-          response.data.forEach((stock) => {
-            if(stock.asset.smart_api_token){
-              priceMap[stock.asset.smart_api_token] = stock.asset.last_traded_price
-            } else {
-              priceMap[stock.asset.symbol] = stock.asset.last_traded_price
-            } // Assuming each stock object has 'symbol' and 'price'
-          });
-
-
-          setStockPrice(priceMap);
-          console.log(priceMap)
-
-        } catch (error) {
-          console.log(error, 'Error fetching stock data');
-          setError('Error fetching stock data'); // Handle error
-        } finally {
-          setLoading(false); // End loading
-        }
-      };
-
-      fetchWatchlistItems();
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
-  }, [watchlistId]); // Trigger effect when watchlistId changes
+  }, [darkMode]);
 
-  // WebSocket connection for real-time updates
+  // Fetch watchlist items
+  useEffect(() => {
+    if (!watchlistId) return;
+    const fetchWatchlistItems = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(`/user/account/watchlists/list/${watchlistId}/`, {
+          headers: { Authorization: `Bearer ${isAuth.access}` },
+        });
+        setStocks(response.data);
+        const priceMap = {};
+        response.data.forEach((stock) => {
+          const key = stock.asset.smart_api_token || stock.asset.symbol;
+          priceMap[key] = stock.asset.last_traded_price;
+        });
+        setStockPrice(priceMap);
+      } catch (error) {
+        console.error("Error fetching stock data:", error);
+        setError("Error fetching stock data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWatchlistItems();
+  }, [watchlistId, isAuth.access]);
+
+  // WebSocket for real-time updates
   useEffect(() => {
     const socket = new WebSocket("ws://127.0.0.1:8000/ws/assets/");
-  
     socket.onopen = () => {
       if (stocks.length > 0) {
-        console.log('on open')
-        const watchlistSymbols = stocks.map(stock => stock.asset.smart_api_token?stock.asset.smart_api_token:stock.asset.symbol);
+        const watchlistSymbols = stocks.map((stock) =>
+          stock.asset.smart_api_token || stock.asset.symbol
+        );
         socket.send(JSON.stringify({ watchlist_symbols: watchlistSymbols }));
       }
     };
-  
     socket.onmessage = (event) => {
-      console.log('hello')
       const data = JSON.parse(event.data);
-      const { symbol, price } = data;
-
-      // Update the stockPrice state
-      setStockPrice(prevPriceData => ({
-          ...prevPriceData,
-          [symbol]: price
-        }));
-        
-        console.log(stockPrice,data.symbol,stockPrice[data.symbol])
-      };
-  
-    socket.onerror = (error) => {
-      console.error("WebSocket Error:", error);
+      setStockPrice((prev) => ({ ...prev, [data.symbol]: data.price }));
     };
-  
-    return () => {
-      socket.close();
-    };
-  }, [stocks]);  // Reconnect WebSocket whenever stocks change // Reconnect WebSocket if watchlistId changes
+    socket.onerror = (error) => console.error("WebSocket Error:", error);
+    return () => socket.close();
+  }, [stocks]);
 
-  const handleDelete = async (assetId) => {
+  const handleAssetClick = (asset, label, stockId) => {
+    if (label === "Buy" || label === "Sell") {
+      dispatch(updateIsOrder(asset));
+    } else if (label === "Chart") {
+      dispatch(setSelectedAsset(asset));
+      dispatch(setWatchlistData(stocks));
+    } else if (label === "Info") {
+      dispatch(setSelectedAsset(asset));
+    }
+    setActiveTooltip(null);
+  };
+
+  const handleDelete = async (assetId, stockId) => {
     try {
-      const response = await api.delete(
-        `/user/account/watchlists/list/${watchlistId}/${assetId}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${isAuth.access}`,
-          },
-        }
-      );
-
-      // Remove the deleted item from the local state
-      setStocks(stocks.filter(stock => stock.asset.id !== assetId));
-
+      await api.delete(`/user/account/watchlists/list/${watchlistId}/${assetId}/`, {
+        headers: { Authorization: `Bearer ${isAuth.access}` },
+      });
+      setStocks(stocks.filter((stock) => stock.asset.id !== assetId));
+      setActiveTooltip(null);
     } catch (error) {
-      console.error('Error deleting asset:', error);
+      console.error("Error deleting asset:", error);
     }
   };
 
   const getPriceColor = (value) => {
-    if (!value) return 'text-black';
-    return parseFloat(value) >= 0 ? 'text-green-500' : 'text-red-500';
+    if (!value) return darkMode ? "text-gray-300" : "text-gray-600";
+    return parseFloat(value) >= 0 ? "text-green-500" : "text-red-500";
+  };
+
+  // Animation variants
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+    hover: { 
+      scale: 1.02, 
+      boxShadow: darkMode 
+        ? "0 8px 16px rgba(255,255,255,0.1)" 
+        : "0 8px 16px rgba(0,0,0,0.05)"
+    },
+    tap: { scale: 0.98 },
+  };
+
+  const tooltipVariants = {
+    hidden: { opacity: 0, y: 10, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 },
   };
 
   return (
     <div className="w-full">
-      {/* Loading state */}
-      {!orderModalOn && <OrderModal />}
-      {loading && <div>Loading...</div>}
-
-      {/* Error state */}
-      {error && <div>{error}</div>}
-
-      {/* Display stocks */}
-      {!loading && !error && stocks.length > 0 ? (
-        stocks.map((stock, index) => (
-          <div key={index} className="relative bg-[#DED7F8] p-2 mb-1 rounded-md shadow-md group">
-            {/* Stock Data */}
-            <div className="flex justify-between items-center">
-              <div className="flex">
-                <div className="text-xl font-bold">{stock.asset.name}</div>
-                <div className="p-1 text-xs bg-gray-300 inline-block m-1">
-                  {stock.asset.asset_type}
-                </div>
-              </div>
-              <div className='flex flex-col items-end'>
-                {/* Last Traded Price */}
-                <div className={`text-xl font-bold ${getPriceColor(stock.asset.net_change)}`}>
-                  ₹{stock.asset.smart_api_token?stockPrice[stock.asset.smart_api_token] : stockPrice[stock.asset.symbol]}
-                </div>
-                {/* Net Change and Percentage Change */}
-                <div className="flex text-sm space-x-2">
-                  <span className="text-black">
-                    {stock.asset.net_change}
+      
+      <AnimatePresence>
+        {loading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={`text-center py-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+          >
+            Loading...
+          </motion.div>
+        ) : error ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={`text-center py-4 ${darkMode ? "text-red-400" : "text-red-600"}`}
+          >
+            {error}
+          </motion.div>
+        ) : stocks.length > 0 ? (
+          stocks.map((stock, index) => (
+            <motion.div
+              key={stock.asset.id}
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              whileHover="hover"
+              whileTap="tap"
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+              onMouseEnter={() => setActiveTooltip(stock.asset.id)}
+              onMouseLeave={() => setActiveTooltip(null)}
+              className={`relative p-3 sm:p-4 mb-2 rounded-xl shadow-md transition-all duration-300 ${
+                darkMode 
+                  ? "bg-gray-700 hover:bg-gray-600" 
+                  : "bg-white hover:bg-gray-50"
+              }`}
+            >
+              {/* Stock Data */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <div className="flex items-center space-x-2">
+                  <span className={`text-lg sm:text-xl font-bold ${darkMode ? "text-white" : "text-gray-800"}`}>
+                    {stock.asset.name}
                   </span>
-                  <span className={`${getPriceColor(stock.asset.percent_change)}`}>
-                    ({stock.asset.percent_change}%)
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Hover Box */}
-            <div className="absolute bottom-2 right-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500 ease-in-out bg-gray-500 shadow-md px-2 py-1 rounded-md border">
-              <div className="flex space-x-2">
-                {['Buy', 'Sell', 'Info', 'Chart'].map((label, idx) => (
-                  <div key={idx} className="has-tooltip">
-                    <span className="tooltip shadow-lg p-1 text-black -mt-8 bg-black text-white rounded-md px-4">
-                      {label}
-                    </span>
-                    <button
-                      onClick={() => handleAssetClick(stock.asset, label)}
-
-                      className={`bg-gray-100 text-sm font-bold py-1 rounded-md w-8 ${label === 'Buy'
-                        ? 'bg-white hover:bg-green-700 text-green-500 hover:text-white'
-                        : label === 'Sell'
-                          ? 'bg-white hover:bg-red-700 text-red-500 hover:text-white'
-                          : 'bg-white hover:bg-blue-700 text-blue-500 hover:text-white'
-                        } hover:opacity-80`}
-                    >
-                      {label.charAt(0)}
-                    </button>
-                  </div>
-                ))}
-                {/* Delete Button */}
-                <div className="has-tooltip">
-                  <span className="tooltip rounded shadow-lg p-1 bg-gray-100 text-black -mt-8">
-                    Delete
-                  </span>
-                  <button
-                    className="bg-red-600 text-white text-xs px-2 py-1 rounded-md hover:opacity-80"
-                    onClick={() => handleDelete(stock.asset.id)}
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${
+                      darkMode ? "bg-gray-600 text-gray-300" : "bg-gray-200 text-gray-600"
+                    }`}
                   >
-                    <i className="fas fa-trash-alt"></i>
-                  </button>
+                    {stock.asset.asset_type}
+                  </span>
+                </div>
+                <div className="mt-2 sm:mt-0 flex flex-col items-end">
+                  <span
+                    className={`text-lg sm:text-xl font-bold ${getPriceColor(stock.asset.net_change)}`}
+                  >
+                    ₹{stock.asset.smart_api_token ? stockPrice[stock.asset.smart_api_token] : stockPrice[stock.asset.symbol] || "N/A"}
+                  </span>
+                  <div className="flex text-xs sm:text-sm space-x-2">
+                    <span className={darkMode ? "text-gray-300" : "text-gray-600"}>
+                      {stock.asset.net_change}
+                    </span>
+                    <span className={getPriceColor(stock.asset.percent_change)}>
+                      ({stock.asset.percent_change}%)
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        ))
-      ) : (
-        <div>No stocks available for this watchlist.</div>
-      )}
+
+              {/* Tooltip-like Action Buttons */}
+              <AnimatePresence>
+                {activeTooltip === stock.asset.id && (
+                  <motion.div
+                    variants={tooltipVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    transition={{ duration: 0.2 }}
+                    className={`absolute bottom-2 right-2 flex space-x-2 z-10 p-2 rounded-lg shadow-lg ${
+                      darkMode ? "bg-gray-800" : "bg-gray-100"
+                    }`}
+                  >
+                    {["Buy", "Sell", "Chart", "Info"].map((label) => (
+                      <motion.button
+                        key={label}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleAssetClick(stock.asset, label, stock.asset.id)}
+                        className={`p-2 rounded-md text-sm font-semibold flex items-center justify-center shadow-sm ${
+                          label === "Buy"
+                            ? darkMode
+                              ? "bg-green-600 hover:bg-green-700 text-white"
+                              : "bg-green-500 hover:bg-green-600 text-white"
+                            : label === "Sell"
+                            ? darkMode
+                              ? "bg-red-600 hover:bg-red-700 text-white"
+                              : "bg-red-500 hover:bg-red-600 text-white"
+                            : darkMode
+                            ? "bg-gray-600 hover:bg-gray-500 text-white"
+                            : "bg-blue-500 hover:bg-blue-600 text-white"
+                        }`}
+                        title={label}
+                      >
+                        <i
+                          className={`fas ${
+                            label === "Buy"
+                              ? "fa-plus" // Changed to plus for buying (adding to portfolio)
+                              : label === "Sell"
+                              ? "fa-minus" // Changed to minus for selling (removing from portfolio)
+                              : label === "Chart"
+                              ? "fa-chart-line"
+                              : "fa-info-circle"
+                          }`}
+                        />
+                      </motion.button>
+                    ))}
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleDelete(stock.asset.id, stock.asset.id)}
+                      className={`p-2 rounded-md text-sm font-semibold flex items-center justify-center shadow-sm ${
+                        darkMode ? "bg-red-600 hover:bg-red-700 text-white" : "bg-red-500 hover:bg-red-600 text-white"
+                      }`}
+                      title="Delete"
+                    >
+                      <i className="fas fa-trash-alt" />
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={`text-center py-4 ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+          >
+            No stocks available for this watchlist.
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 export default WatchlistItems;
-
