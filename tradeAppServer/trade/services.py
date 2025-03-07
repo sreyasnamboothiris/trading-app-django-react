@@ -5,6 +5,9 @@ from .models import Order
 from rest_framework.exceptions import ValidationError
 import redis
 import json
+from asgiref.sync import sync_to_async
+from .tasks import execute_pending_orders_task
+from django.core.cache import cache
 
 redis_client = redis.Redis(host='localhost', port=6379,
                            db=0, decode_responses=True)
@@ -47,7 +50,8 @@ class TradeService:
     def store_limit_order(order_id, symbol, order_type, limit_price):
         """Store orders in a Redis Sorted Set (ZSET)."""
         key = f"orders:{symbol}:{order_type}"
-        redis_client.zadd(key, {json.dumps({"id": order_id, "price": limit_price}): limit_price})
+        print(key)
+        redis_client.zadd(key, {json.dumps({"id": order_id, "price": limit_price,"order_type":order_type}): limit_price})
         print(f"Order {order_id} added to {key} at price {limit_price}")
     
         
@@ -56,17 +60,25 @@ class TradeService:
 
         buy_key = f"orders:{symbol}:buy"
         sell_key = f"orders:{symbol}:sell"
-        # Find all buy orders where price >= new price (buyers want lower price)
-        buy_orders = redis_client.zrangebyscore(buy_key, "-inf", price)
-        for order_data in buy_orders:
-            print('here we excute limit buy order')
-            #TradeService.excute_pending_orders(order_id, price, 'buy')
 
-        # Find all sell orders where price <= new price (sellers want higher price)
-        sell_orders = redis_client.zrangebyscore(sell_key, price, "+inf")
-        for order_data in sell_orders:
-            print('here we excute limit sell order')
-            #TradeService.excute_pending_orders(order_id, price, 'sell')
+        # Find all BUY orders where price >= new price (buyers want lower price)
+        buy_orders = redis_client.zrangebyscore(buy_key, "-inf", 400)
+        buy_order_ids = [json.loads(order)['id'] for order in buy_orders]
+        print('hellow',buy_orders)
+        orders = redis_client.zrange(buy_key, 0, -1, withscores=True)
+        print("Stored Orders in Redis:", orders)
+        # Find all SELL orders where price <= new price (sellers want higher price)
+        sell_orders = redis_client.zrangebyscore(sell_key, "-inf", price)
+        sell_order_ids = [json.loads(order)['id'] for order in sell_orders]
+
+        
+
+        # # Execute sell orders in bulk (if any)
+        # if sell_order_ids:
+        #     print(f"🔹 Executing {len(sell_order_ids)} SELL orders at price {price}")
+        #     execute_pending_orders_task.delay(sell_order_ids, price)  # Async execution
+        
+        return f"Processed {len(buy_order_ids)} buy orders & {len(sell_order_ids)} sell orders"
             
 
     
@@ -95,7 +107,7 @@ class TradeService:
                         quantity=int(data['quantity']),
                         limit_price=float(data['price']),
                         trade_duration=product_type,
-                        trade_type=product_type,
+                        trade_type=trade_type,
                         status='pending',
                     )
                     order.save()
@@ -117,7 +129,7 @@ class TradeService:
             quantity=int(data['quantity']),
             price=float(data['price']),
             trade_duration=product_type,
-            trade_type=product_type,
+            trade_type=trade_type,
             status='excuted',
         )
         
@@ -126,10 +138,12 @@ class TradeService:
         TradeService.check_balance(user_account, float(data['price']), float(data['quantity']))
 
     @staticmethod
-    def excute_pending_orders(order_id, price, trade_type):
+    async def excute_pending_orders(order_id, price, trade_type):
         try:
-            order = Order.objects.get(id=order_id)
+            order = await sync_to_async(Order.objects.get(id=order_id)) 
+            print('order',order)
             order.status = 'executed'
+            order.price = price
             order.save()
             print('completed order setup completed')
         except Order.DoesNotExist:
