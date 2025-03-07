@@ -1,229 +1,172 @@
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation from react-router-dom
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Import your PNG icons
-import MarketIcon from "../../assets/header/icons/market.png";
-import WatchlistIcon from "../../assets/header/icons/watchlist.png";
-import PortfolioIcon from "../../assets/header/icons/portfolio.png";
-import OrdersIcon from "../../assets/header/icons/orders.png";
-import NotificationsIcon from "../../assets/header/icons/notification.png";
-import ProfileIcon from "../../assets/header/icons/profile.png";
-
-// Import the CSS file for styling
-import './header.css'; // Import your CSS file here
+import './header.css'; // Keep your CSS file if needed
 
 function Header() {
-
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const location = useLocation(); // Get the current location (URL)
+  const [darkMode, setDarkMode] = useState(localStorage.getItem("theme") === "dark");
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  // Function to check if the current URL matches the route of a particular menu item
+  // Theme listener
+  useEffect(() => {
+    const handleThemeChange = () => setDarkMode(localStorage.getItem("theme") === "dark");
+    window.addEventListener("storage", handleThemeChange);
+    return () => window.removeEventListener("storage", handleThemeChange);
+  }, []);
+
   const isActive = (path) => location.pathname === path;
 
+  const menuItems = [
+    { path: "/home/", icon: "fa-chart-line", label: "Market" },
+    { path: "/home/chart/", icon: "fa-list", label: "Watchlist" },
+    { path: "/user/portfolio", icon: "fa-wallet", label: "Portfolio" },
+    { path: "/user/order/", icon: "fa-clipboard-list", label: "Orders" },
+    { path: "/user/notification", icon: "fa-bell", label: "Notifications" },
+    { path: "/user/profile", icon: "fa-user", label: "Profile" },
+  ];
+
+  // Animation variants for icons
+  const iconVariants = {
+    hover: { 
+      scale: 1.1, 
+      y: -5, 
+      transition: { type: "spring", stiffness: 300, damping: 10 } 
+    },
+    tap: { scale: 0.95 },
+    active: { scale: 1.05, boxShadow: darkMode ? "0 0 10px rgba(255,255,255,0.5)" : "0 0 10px rgba(0,0,0,0.3)" },
+  };
+
+  const dropdownVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <header className="bg-[#2D5F8B] w-full h-[100px] flex items-center px-6">
-      {/* Left Empty Section */}
-      <div className="flex flex-grow lg:ml-32 flex-col">
+    <motion.header
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className={`w-full h-[80px] sm:h-[100px] flex items-center justify-between px-4 sm:px-6 shadow-lg transition-colors duration-300 ${
+        darkMode ? "bg-gray-900 text-white" : "bg-[#2D5F8B] text-white"
+      }`}
+    >
+      {/* Logo Section - Shifted Slightly Right */}
+      <motion.div
+        className="ml-4 sm:ml-8 flex items-center cursor-pointer"
+        onClick={() => navigate("/home/")}
+        whileHover={{ scale: 1.05 }}
+      >
         <div className="flex flex-row">
-          <div className="text-6xl text-white font-serif">
+          <div className="text-4xl sm:text-6xl font-serif">
             M
           </div>
-          <div className="flex flex-col text-white text-xl">
-            <div>
-              oney
-            </div>
-            <div>
-            inder  
-            </div>  
+          <div className="flex flex-col text-lg sm:text-xl">
+            <div>oney</div>
+            <div>inder</div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
+      {/* Spacer to push nav past center */}
+      <div className="flex-grow hidden lg:block" />
 
-      {/* Right Section */}
-      <div className="">
-      <div className="hidden lg:flex grid grid-cols-6 gap-10">
-      <div
-      onClick={()=>navigate('/home/')}
-        className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
-          isActive("/home") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
-        }`}
-      >
-        <img src={MarketIcon} alt="Market" className="rounded" />
-        <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-          Market
-        </div>
-        <div
-          className={`absolute inset-x-0 -bottom-4 h-[3px] ${
-            isActive("/home")
-              ? "bg-[#002F42] scale-x-100"
-              : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
-          } transition-transform duration-500 ease-in-out origin-center`}
-        >
-        </div>
-
-      </div>
-        
-        <div
-          onClick={()=>navigate('/home/chart/')}
-          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}
-        >
-          <img src={WatchlistIcon} alt="Watchlist" className="w-8 h-8 rounded" />
-          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-            Watchlist
-          </div>
-          <div
-          
-            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
-              isActive("/home/chart/")
-                ? "bg-[#002F42] scale-x-100"
-                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
-            } transition-transform duration-500 ease-in-out origin-center`}
-          ></div>
-        </div>
-
-        <div
-          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out`}
-        >
-          <img src={PortfolioIcon} alt="Portfolio" className="rounded" />
-          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-            Portfolio
-          </div>
-          <div
-            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
-              isActive("/user/portfolio")
-                ? "bg-[#002F42] scale-x-100"
-                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
-            } transition-transform duration-500 ease-in-out origin-center`}
-          ></div>
-        </div>
-
-        <div
-          onClick={()=>navigate('/user/order/')}
-          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
-            isActive("/user/order/") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
-          }`}
-        >
-          <img src={OrdersIcon} alt="Orders" className="rounded" />
-          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-            Orders
-          </div>
-          <div
-            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
-              isActive("/user/order/")
-                ? "bg-[#002F42] scale-x-100"
-                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
-            } transition-transform duration-500 ease-in-out origin-center`}
-          ></div>
-        </div>
-
-        <div
-          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
-            isActive("/user/notification") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
-          }`}
-        >
-          <img src={NotificationsIcon} alt="Notifications" className="rounded" />
-          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-            Notifications
-          </div>
-          <div
-            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
-              isActive("/user/notification")
-                ? "bg-[#002F42] scale-x-100"
-                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
-            } transition-transform duration-500 ease-in-out origin-center`}
-          ></div>
-        </div>
-
-        <div
-          onClick={()=>navigate('/user/profile')}
-          className={`relative group cursor-pointer rounded-md w-8 h-8 flex items-center justify-center transition-colors duration-700 ease-in-out ${
-            isActive("/user/profile") ? "bg-[#002F42]" : "hover:bg-[#002F42]"
-          }`}
-        >
-          <img src={ProfileIcon} alt="Profile" className="rounded" />
-          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#002F42] text-white text-xs px-2 py-1 rounded">
-            Profile
-          </div>
-          <div
-            className={`absolute inset-x-0 -bottom-4 h-[3px] ${
-              isActive("/user/profile")
-                ? "bg-[#002F42] scale-x-100"
-                : "bg-transparent scale-x-0 group-hover:bg-[#002F42] group-hover:scale-x-100"
-            } transition-transform duration-500 ease-in-out origin-center`}
-          ></div>
-        </div>
-
-          <div>
-
-          </div>
-        </div>
-        
-      </div>
-      <nav className="">
-        {/* Desktop Menu */}
-
-        {/* Mobile Menu Button */}
-        <button
-          className="lg:hidden text-white text-xl focus:outline-none"
-          onClick={toggleMenu}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-6 h-6"
+      {/* Desktop Navigation - Starts After Center */}
+      <nav className="hidden lg:flex items-center justify-end space-x-8 mr-4 sm:mr-8 flex-grow max-w-[50%]">
+        {menuItems.map((item) => (
+          <motion.div
+            key={item.path}
+            className={`relative flex items-center justify-center cursor-pointer p-3 rounded-lg transition-colors duration-300 group ${
+              isActive(item.path)
+                ? darkMode
+                  ? "bg-gray-700"
+                  : "bg-[#002F42]"
+                : darkMode
+                ? "hover:bg-gray-700"
+                : "hover:bg-[#002F42]"
+            }`}
+            onClick={() => navigate(item.path)}
+            variants={iconVariants}
+            whileHover="hover"
+            whileTap="tap"
+            animate={isActive(item.path) ? "active" : ""}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 6h16M4 12h16m-7 6h7"
+            <i className={`fas ${item.icon} text-2xl sm:text-3xl`}></i>
+            {/* Tooltip on Hover - Below Icon */}
+            <span
+              className={`absolute top-full mt-2 hidden group-hover:block text-sm px-3 py-1 rounded-lg shadow-md pointer-events-none transition-opacity duration-200 opacity-0 group-hover:opacity-100 ${
+                darkMode ? "bg-gray-800 text-white" : "bg-[#002F42] text-white"
+              }`}
+            >
+              {item.label}
+            </span>
+            <motion.div
+              className={`absolute inset-x-0 bottom-0 h-1 rounded-t ${
+                darkMode ? "bg-gray-400" : "bg-white"
+              }`}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: isActive(item.path) ? 1 : 0 }}
+              transition={{ duration: 0.3 }}
             />
-          </svg>
-        </button>
-
-        {/* Mobile Dropdown */}
-        {menuOpen && (
-          <ul className="absolute top-full right-0 mt-2 bg-white text-black shadow-lg rounded-md w-48 flex flex-col items-start py-2">
-            <li
-              className={`px-4 py-2 hover:bg-gray-100 ${isActive("/user/market") ? "icon-active" : ""}`}
-            >
-              <img src={MarketIcon} alt="Market" className="w-5 h-5 inline-block mr-2" /> Market
-            </li>
-            <li
-              className={`px-4 py-2 hover:bg-gray-100 ${isActive("/user/watchlist") ? "icon-active" : ""}`}
-            >
-              <img src={WatchlistIcon} alt="Watchlist" className="w-5 h-5 inline-block mr-2" /> Watchlist
-            </li>
-            <li
-              className={`px-4 py-2 hover:bg-gray-100 ${isActive("/user/portfolio") ? "icon-active" : ""}`}
-            >
-              <img src={PortfolioIcon} alt="Portfolio" className="w-5 h-5 inline-block mr-2" /> Portfolio
-            </li>
-            <li
-              className={`px-4 py-2 hover:bg-gray-100 ${isActive("/user/orders") ? "icon-active" : ""}`}
-            >
-              <img src={OrdersIcon} alt="Orders" className="w-5 h-5 inline-block mr-2" /> Orders
-            </li>
-            <li
-              className={`px-4 py-2 hover:bg-gray-100 ${isActive("/user/notifications") ? "icon-active" : ""}`}
-            >
-              <img src={NotificationsIcon} alt="Notifications" className="w-5 h-5 inline-block mr-2" /> Notifications
-            </li>
-            <li
-              className={`px-4 py-2 hover:bg-gray-100 ${isActive("/user/profile") ? "icon-active" : ""}`}
-            >
-              <img src={ProfileIcon} alt="Profile" className="w-5 h-5 inline-block mr-2" /> Profile
-            </li>
-          </ul>
-        )}
+          </motion.div>
+        ))}
       </nav>
-    </header>
+
+      {/* Mobile Menu Button */}
+      <motion.button
+        className="lg:hidden flex items-center justify-center w-12 h-12 rounded-full bg-opacity-20 bg-white text-2xl focus:outline-none"
+        onClick={toggleMenu}
+        whileHover={{ scale: 1.1, backgroundColor: darkMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.1)" }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <i className="fas fa-bars"></i>
+      </motion.button>
+
+      {/* Mobile Dropdown */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.ul
+            variants={dropdownVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            transition={{ duration: 0.3 }}
+            className={`absolute top-[80px] sm:top-[100px] right-4 w-56 rounded-lg shadow-lg py-3 z-50 ${
+              darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+            }`}
+          >
+            {menuItems.map((item, index) => (
+              <motion.li
+                key={item.path}
+                className={`px-4 py-3 flex items-center space-x-3 cursor-pointer text-lg ${
+                  isActive(item.path)
+                    ? darkMode
+                      ? "bg-gray-700"
+                      : "bg-gray-100"
+                    : darkMode
+                    ? "hover:bg-gray-700"
+                    : "hover:bg-gray-100"
+                }`}
+                onClick={() => {
+                  navigate(item.path);
+                  setMenuOpen(false);
+                }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2, delay: index * 0.1 }}
+              >
+                <i className={`fas ${item.icon} text-2xl`}></i>
+                <span>{item.label}</span>
+              </motion.li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </motion.header>
   );
 }
 

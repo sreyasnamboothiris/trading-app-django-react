@@ -5,6 +5,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateIsOrder } from '../../store/homeDataSlice';
 import api from '../../interceptors';
 
+
+{/* <span className="text-gray-400">{new Date(order.created_at).toLocaleString()}</span> */}
+
 const OrderModal = () => {
   const user = useSelector((state) => state.auth.isAuth);
   const [activeTab, setActiveTab] = useState('normal');
