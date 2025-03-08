@@ -1,55 +1,60 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import api from '../../../interceptors';
-import { useSelector } from 'react-redux';
+import React, { useState } from "react";
+import { toast } from "react-toastify";
+import api from "../../../interceptors";
+import { useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 
 function ResetPasswordButton() {
   const [showModal, setShowModal] = useState(false);
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const isAuth = useSelector((state)=>state.auth.isAuth)
+  const isAuth = useSelector((state) => state.auth.isAuth);
+  const [darkMode] = useState(() =>
+    localStorage.theme === "dark" ||
+    (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
+
   const handlePasswordReset = () => {
     if (newPassword !== confirmPassword) {
       toast.error("New passwords do not match");
       return;
     }
-  
+
     setLoading(true);
-  
+
     const userData = JSON.parse(localStorage.getItem("userInfo"));
-  
+
     api
-      .post("user/password/reset/", {
-        user_id: userData.user_id,
-        old_password: oldPassword,
-        new_password: newPassword,
-        confirm_password: confirmPassword,
-      },{
-        headers: {
-          Authorization: `Bearer ${isAuth.access}`, // Add Authorization header here
+      .post(
+        "user/password/reset/",
+        {
+          user_id: userData.user_id,
+          old_password: oldPassword,
+          new_password: newPassword,
+          confirm_password: confirmPassword,
         },
-      }
-    )
+        {
+          headers: { Authorization: `Bearer ${isAuth.access}` },
+        }
+      )
       .then(() => {
         toast.success("Password successfully changed");
-        setShowModal(false); // Close the modal after successful change
+        setShowModal(false);
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
       })
       .catch((error) => {
-        // Check if there are validation errors in the response
         if (error.response?.data) {
           const errors = error.response.data;
-          
           Object.entries(errors).forEach(([key, value]) => {
-            // If the error message is an array, display each error individually
             if (Array.isArray(value)) {
               value.forEach((msg) => toast.error(msg));
             } else if (typeof value === "object" && value.message) {
-              // For structured error objects
               toast.error(value.message);
             } else {
-              // For direct error messages
               toast.error(value);
             }
           });
@@ -57,84 +62,122 @@ function ResetPasswordButton() {
           toast.error("An unexpected error occurred.");
         }
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
-  
+
+  // Animation variants
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" },
+    tap: { scale: 0.95 },
+  };
 
   return (
     <div>
-      {/* Button to show the modal */}
-      <button
-      type='button'
+      {/* Trigger Button */}
+      <motion.button
+        type="button"
+        variants={buttonVariants}
+        whileHover="hover"
+        whileTap="tap"
         onClick={() => setShowModal(true)}
-        className="bg-[#2D5F8B] text-white p-1 text-lg font-bold rounded-lg px-4 py-2"
+        className={`px-4 py-2 rounded-lg text-sm sm:text-base font-semibold shadow-md ${
+          darkMode
+            ? "bg-blue-600 hover:bg-blue-700 text-white"
+            : "bg-[#2D5F8B] hover:bg-[#3A7CA8] text-white"
+        }`}
       >
         Reset Password
-      </button>
+      </motion.button>
 
       {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-[#2D5F8B] border-black border-4 rounded-xl w-96">
-            <div className='bg-[#002F42] w-full p-2 flex justify-center '>
-            <h2 className="text-4xl font-semibold mb-4">Change Password</h2>
-            </div>
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50"
+          >
+            <motion.div
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className={`w-full max-w-md p-6 rounded-xl shadow-2xl ${
+                darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+              }`}
+            >
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
+                Change Password
+              </h2>
 
-            <div className="mb-4 p-6">
-              <label className="block text-black text-sm font-semibold">Old Password</label>
-              <input
-                type="password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className="bg-gray-400 text-black w-full p-2 mt-1 border border-gray-300 rounded-md placeholder-gray-700"
-                placeholder="Enter your old password"
-              />
-            </div>
+              {/* Form Fields */}
+              <div className="space-y-4">
+                {[
+                  { label: "Old Password", value: oldPassword, setter: setOldPassword },
+                  { label: "New Password", value: newPassword, setter: setNewPassword },
+                  { label: "Confirm New Password", value: confirmPassword, setter: setConfirmPassword },
+                ].map((field, index) => (
+                  <div key={index}>
+                    <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                      {field.label}
+                    </label>
+                    <motion.input
+                      type="password"
+                      value={field.value}
+                      onChange={(e) => field.setter(e.target.value)}
+                      whileFocus={{ scale: 1.02, borderColor: darkMode ? "#9CA3AF" : "#3B82F6" }}
+                      className={`mt-1 w-full p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 transition-all duration-300 ${
+                        darkMode
+                          ? "bg-gray-700 text-white border-gray-600 focus:ring-gray-500 placeholder-gray-400"
+                          : "bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500 placeholder-gray-500"
+                      }`}
+                      placeholder={`Enter ${field.label.toLowerCase()}`}
+                    />
+                  </div>
+                ))}
+              </div>
 
-            <div className="mb-4 p-6">
-              <label className="block text-sm font-semibold text-black">New Password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="bg-gray-400 text-black w-full p-2 mt-1 border border-gray-300 rounded-md placeholder-gray-700"
-                placeholder="Enter a new password"
-              />
-            </div>
-
-            <div className="mb-4 p-6">
-              <label className="block text-sm font-semibold text-black">Confirm New Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-gray-400 text-black w-full p-2 mt-1 border border-gray-300 rounded-md placeholder-gray-700"
-                placeholder="Confirm your new password"
-              />
-            </div>
-
-            <div className="flex justify-between gap-4 mt-6 p-6">
-              <button
-              type='button'
-                onClick={() => setShowModal(false)} // Close modal
-                className="bg-red-500 text-lg font-bold text-white rounded-lg px-4 py-2"
-              >
-                Cancel
-              </button>
-              <button
-              type='button'
-                onClick={handlePasswordReset}
-                disabled={loading}
-                className="text-lg font-bold bg-[#002F42] text-white rounded-lg px-4 py-2"
-              >
-                {loading ? 'Updating...' : 'Confirm'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-4 mt-6">
+                <motion.button
+                  type="button"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  onClick={() => setShowModal(false)}
+                  className={`px-4 py-2 rounded-lg text-sm sm:text-base font-semibold ${
+                    darkMode ? "bg-gray-600 hover:bg-gray-500 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  type="button"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  onClick={handlePasswordReset}
+                  disabled={loading}
+                  className={`px-4 py-2 rounded-lg text-sm sm:text-base font-semibold ${
+                    darkMode
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-[#2D5F8B] hover:bg-[#3A7CA8] text-white"
+                  } ${loading ? "opacity-75 cursor-not-allowed" : ""}`}
+                >
+                  {loading ? "Updating..." : "Confirm"}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -8,17 +8,14 @@ function SymbolSearchWidget({ activeWatchlist, onAssetAdded }) {
   const [assets, setAssets] = useState([]);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    return (
-      localStorage.theme === "dark" ||
-      (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    );
-  });
+  const [darkMode] = useState(() =>
+    localStorage.theme === "dark" ||
+    (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
   const isAuth = useSelector((state) => state.auth.isAuth);
   const listContainerRef = useRef(null);
   const [loadedCount, setLoadedCount] = useState(0);
 
-  // Sync dark mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
@@ -67,7 +64,7 @@ function SymbolSearchWidget({ activeWatchlist, onAssetAdded }) {
       .then((response) => {
         console.log("Asset added successfully", response.data);
         onAssetAdded();
-        setSearchQuery(""); // Clear search after adding
+        setSearchQuery("");
         setAssets([]);
       })
       .catch((error) => console.error("Error adding asset:", error));
@@ -88,7 +85,6 @@ function SymbolSearchWidget({ activeWatchlist, onAssetAdded }) {
     };
   }, [hasMore, loading, loadedCount, searchQuery]);
 
-  // Animation variants
   const inputVariants = {
     focus: { scale: 1.02, borderColor: darkMode ? "#9CA3AF" : "#3B82F6" },
   };
@@ -104,13 +100,12 @@ function SymbolSearchWidget({ activeWatchlist, onAssetAdded }) {
   };
 
   return (
-    <div className="mt-4 sm:mt-6">
-      {/* Search Input */}
+    <div className="mt-4 sm:mt-6 relative z-20">
       <motion.div
         variants={inputVariants}
         whileFocus="focus"
         transition={{ duration: 0.2 }}
-        className={`relative w-full`}
+        className="relative w-full"
       >
         <input
           type="text"
@@ -135,7 +130,6 @@ function SymbolSearchWidget({ activeWatchlist, onAssetAdded }) {
         )}
       </motion.div>
 
-      {/* Search Results */}
       <AnimatePresence>
         {assets.length > 0 && (
           <motion.div
@@ -145,7 +139,7 @@ function SymbolSearchWidget({ activeWatchlist, onAssetAdded }) {
             exit="hidden"
             transition={{ duration: 0.3 }}
             ref={listContainerRef}
-            className={`mt-4 max-h-60 overflow-y-auto rounded-lg shadow-md p-2 sm:p-3 ${
+            className={`mt-4 max-h-60 overflow-y-auto rounded-lg shadow-md p-2 sm:p-3 relative z-30 ${
               darkMode ? "bg-gray-800" : "bg-gray-100"
             }`}
           >
