@@ -62,7 +62,7 @@ class TradeService:
         sell_key = f"orders:{symbol}:sell"
 
         # Find all BUY orders where price >= new price (buyers want lower price)
-        buy_orders = redis_client.zrangebyscore(buy_key, "-inf", 400)
+        buy_orders = redis_client.zrangebyscore(buy_key, price, "+inf")
         buy_order_ids = [json.loads(order)['id'] for order in buy_orders]
         print('hellow',buy_orders)
         orders = redis_client.zrange(buy_key, 0, -1, withscores=True)
@@ -70,7 +70,13 @@ class TradeService:
         # Find all SELL orders where price <= new price (sellers want higher price)
         sell_orders = redis_client.zrangebyscore(sell_key, "-inf", price)
         sell_order_ids = [json.loads(order)['id'] for order in sell_orders]
+        # Execute BUY orders asynchronously
+        if buy_order_ids:
+            execute_pending_orders_task.delay(buy_order_ids, price, buy_key)
 
+        # Execute SELL orders asynchronously
+        if sell_order_ids:
+            execute_pending_orders_task.delay(sell_order_ids, price, sell_key)
         
 
         # # Execute sell orders in bulk (if any)
@@ -130,7 +136,7 @@ class TradeService:
             price=float(data['price']),
             trade_duration=product_type,
             trade_type=trade_type,
-            status='excuted',
+            status='executed',
         )
         
         TradeService.balance_update(user_account, float(data['price']) * float(data['quantity']))
