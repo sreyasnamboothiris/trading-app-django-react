@@ -1,0 +1,13 @@
+daphne -b 0.0.0.0 -p 8000 tradeAppServer.asgi:application
+
+env\scripts\activate
+
+cd tradeAppServer
+
+cd client
+
+python manage.py binance_ws
+
+python manage.py smartapi_ws
+
+celery -A tradeAppServer worker --pool=eventlet
