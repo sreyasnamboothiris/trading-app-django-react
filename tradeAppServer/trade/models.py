@@ -24,7 +24,8 @@ class Order(models.Model):
         ('pending', 'Pending'),
         ('executed', 'Executed'),
         ('cancelled', 'Cancelled'),
-        ('triggered', 'Triggered')
+        ('triggered', 'Triggered'),
+        ('rejected', 'Rejected')
     )
     TRADE_DURATION = (
         ('intraday', 'Intraday'),

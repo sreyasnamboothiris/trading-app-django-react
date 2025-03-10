@@ -64,6 +64,6 @@ class OrderView(APIView):
                     continue  # Skip storing if already exists
 
                 # Store in Redis
-                TradeService.store_limit_order(order.id, order.asset.symbol, order.trade_type, float(order.limit_price))
+                #TradeService.store_limit_order(order.id, order.asset.symbol, order.trade_type, float(order.limit_price))
 
-                print(f"Stored Order {order.id} in Redis.")
+                #print(f"Stored Order {order.id} in Redis.")
