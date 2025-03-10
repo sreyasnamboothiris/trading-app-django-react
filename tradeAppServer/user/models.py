@@ -11,6 +11,7 @@ from django.utils.timezone import now
 from market.models import Asset
 
 
+
 def validate_non_space_string(value):
     # Check if the string contains only spaces
     if not value or value.strip() == "":
@@ -124,6 +125,9 @@ class CustomUser(AbstractUser):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    def get_user_acitve_account(self):
+        return self.accounts.filter(is_active=True).first()
+
     def __str__(self):
         return self.username
 
@@ -190,6 +194,11 @@ class Account(models.Model):
     blank=True)
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_currency(self):
+        return self.currency
+    def get_balance(self):
+        return self.funds
 
     def clean(self):
         # Validation for account name: minimum 4 characters, no extra spaces

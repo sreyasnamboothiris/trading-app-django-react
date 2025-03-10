@@ -413,7 +413,6 @@ class WatchlistView(APIView):
                 user=request.user).order_by('name')  # Alphabetical order
             # Serialize the data
             serializer = WatchlistSerializer(watchlists, many=True)
-            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -494,7 +493,6 @@ class WatchlistItemView(APIView):
 
         # Serialize the watchlist items
         serializer = WatchlistItemSerializer(watchlist_items, many=True)
-        print(serializer.data, 'ivde vannu, watlistitems')
         return Response(serializer.data, status=200)
 
     def post(self, request):
@@ -590,7 +588,6 @@ class TestApi(APIView):
         return Response({"email": 'email@gmail.com'}, status=200)
 
     def post(self, request):
-        print('ivde vannu sdfas')
         try:
             # Get the 'data' field from the request body
             # Safer way to access, avoiding key errors
