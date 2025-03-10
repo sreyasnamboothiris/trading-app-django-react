@@ -1,17 +1,14 @@
-import React, { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { useForm } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
-import { updateIsOrder } from '../../store/homeDataSlice';
-import api from '../../interceptors';
-
-
-{/* <span className="text-gray-400">{new Date(order.created_at).toLocaleString()}</span> */}
+import React, { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { updateIsOrder } from "../../store/homeDataSlice";
+import api from "../../interceptors";
 
 const OrderModal = () => {
   const user = useSelector((state) => state.auth.isAuth);
-  const [activeTab, setActiveTab] = useState('normal');
-  const [productType, setProductType] = useState('intraday');
+  const [activeTab, setActiveTab] = useState("normal");
+  const [productType, setProductType] = useState("intraday");
   const [orderSettings, setOrderSettings] = useState({
     isBuy: true,
     isMarketOrder: false,
@@ -24,6 +21,10 @@ const OrderModal = () => {
   const dispatch = useDispatch();
   const { orderAsset } = useSelector((state) => state.homeData);
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const [darkMode] = useState(() =>
+    localStorage.theme === "dark" ||
+    (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  );
 
   const toggleOrderSetting = useCallback((setting) => {
     setOrderSettings((prevSettings) => ({
@@ -33,293 +34,461 @@ const OrderModal = () => {
   }, []);
 
   const onSubmit = (data) => {
-    // Build the data object to send to the backend
     const updatedData = {
       ...data,
-      product_type: productType, // "Intraday" or "Delivery"
-      order_type: orderSettings.isMarketOrder ? 'market' : 'limit',
-      trade_type: orderSettings.isBuy ? 'buy' : 'sell',
+      product_type: productType,
+      order_type: orderSettings.isMarketOrder ? "market" : "limit",
+      trade_type: orderSettings.isBuy ? "buy" : "sell",
       asset_id: orderAsset.id,
       is_stop_loss: orderSettings.enableStopLoss,
       is_market_stop_loss: orderSettings.isMarketStopLoss,
       is_target: orderSettings.enableTarget,
       is_market_target: orderSettings.isMarketTarget,
-      is_market_price: orderSettings.isMarketOrder
-
-      // <-- Added asset_id from redux store
+      is_market_price: orderSettings.isMarketOrder,
     };
 
-    // If market order is selected, set price to null.
-    if (orderSettings.isMarketOrder) {
-      updatedData.price = null;
-    }
-
-    // Handle Stop Loss values:
+    if (orderSettings.isMarketOrder) updatedData.price = null;
     if (!orderSettings.enableStopLoss) {
-      // If stop loss is disabled, remove both values.
       updatedData.stop_loss = null;
       updatedData.stop_loss_trigger = null;
-    } else {
-      // If enabled but set as market, remove the stop loss value.
-      if (orderSettings.isMarketStopLoss) {
-        updatedData.stop_loss = null;
-      }
-      // Else, the user entered stop loss will be sent.
+    } else if (orderSettings.isMarketStopLoss) {
+      updatedData.stop_loss = null;
     }
-
-    // Handle Target Price values:
     if (!orderSettings.enableTarget) {
       updatedData.target_price = null;
-      // If you don't use targetTrigger on the backend, you can remove it.
       updatedData.target_price_trigger = null;
-    } else {
-      if (orderSettings.isMarketTarget) {
-        updatedData.target_price = null;
-      }
-      // Else, the user-entered targetPrice (and optionally targetTrigger) will be sent.
+    } else if (orderSettings.isMarketTarget) {
+      updatedData.target_price = null;
     }
 
-    // Post the data to the backend
-    api.post('trade/test/', updatedData, {
-      headers: {
-        "Authorization": `Bearer ${user.access}`,
-        'Content-Type': 'application/json',
-      },
-    })
+    api
+      .post("trade/test/", updatedData, {
+        headers: {
+          Authorization: `Bearer ${user.access}`,
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
-        console.log(updatedData)
-        console.log(user)
-        console.log('Order created successfully');
+        console.log("Order created successfully", updatedData);
         dispatch(updateIsOrder(null));
       })
       .catch((error) => {
-        console.log(updatedData)
-        console.log(user)
-        console.error(error);
+        console.error("Order creation failed", error, updatedData);
       });
 
-    alert(JSON.stringify(updatedData, null, 2)); // Debug: show the JSON being sent.
+    alert(JSON.stringify(updatedData, null, 2));
   };
 
   const handleCancelButton = () => {
     dispatch(updateIsOrder(null));
   };
 
-  return (
+  // Animation Variants
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.9, y: 50 },
+    visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.9, y: 50, transition: { duration: 0.2 } },
+  };
 
+  const buttonVariants = {
+    hover: { scale: 1.05, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" },
+    tap: { scale: 0.95 },
+  };
+
+  const tabVariants = {
+    hover: { scale: 1.05 },
+    active: { scale: 1.1, color: darkMode ? "#68A875" : "#2D5F8B" },
+  };
+
+  return (
     <motion.div
+      variants={modalVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
       drag
       dragMomentum={false}
-      className="max-w-4xl bg-[#2D5F8B] text-white rounded-[15px] shadow-lg p-4 absolute"
+      className={`w-full max-w-4xl p-4 sm:p-6 rounded-xl shadow-2xl absolute z-[1000] ${
+        darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+      }`}
     >
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-medium">{orderAsset.name}</span>
-            <span className="text-red-400">{orderAsset.last_traded_price}</span>
-            <span className="text-gray-400">
-              {orderAsset.percent_change || '0.00'}% ({orderAsset.net_change || '0.00'})
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <span className="text-lg sm:text-xl font-semibold">{orderAsset.name}</span>
+            <span className={`${darkMode ? "text-red-400" : "text-red-500"}`}>
+              {orderAsset.last_traded_price}
+            </span>
+            <span className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm sm:text-base`}>
+              {orderAsset.percent_change || "0.00"}% ({orderAsset.net_change || "0.00"})
             </span>
           </div>
-          <div className="flex bg-white rounded-2xl overflow-hidden w-max p-1">
-            <button
+          <div className="flex bg-gray-200 dark:bg-gray-700 rounded-xl p-1 mt-2 sm:mt-0">
+            <motion.button
               type="button"
-              onClick={() => setOrderSettings(prev => ({ ...prev, isBuy: true }))}
-              className={`px-2 text-sm font-semibold rounded-2xl ${orderSettings.isBuy ? 'bg-green-500 text-white' : 'bg-white text-black'}`}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              onClick={() => setOrderSettings((prev) => ({ ...prev, isBuy: true }))}
+              className={`px-3 py-1 text-sm font-semibold rounded-xl ${
+                orderSettings.isBuy
+                  ? darkMode
+                    ? "bg-green-600 text-white"
+                    : "bg-green-500 text-white"
+                  : darkMode
+                  ? "bg-gray-700 text-gray-300"
+                  : "bg-gray-200 text-gray-900"
+              }`}
             >
-              B
-            </button>
-            <button
+              Buy
+            </motion.button>
+            <motion.button
               type="button"
-              onClick={() => setOrderSettings(prev => ({ ...prev, isBuy: false }))}
-              className={`px-2 text-sm font-semibold rounded-2xl ${!orderSettings.isBuy ? 'bg-red-500 text-white' : 'bg-white text-black'}`}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              onClick={() => setOrderSettings((prev) => ({ ...prev, isBuy: false }))}
+              className={`px-3 py-1 text-sm font-semibold rounded-xl ${
+                !orderSettings.isBuy
+                  ? darkMode
+                    ? "bg-red-600 text-white"
+                    : "bg-red-500 text-white"
+                  : darkMode
+                  ? "bg-gray-700 text-gray-300"
+                  : "bg-gray-200 text-gray-900"
+              }`}
             >
-              S
-            </button>
+              Sell
+            </motion.button>
           </div>
         </div>
 
-        {/* New Tab Header */}
-        <div className="flex gap-2 mb-6 bg-[#002F42]">
-          {['normal', 'stoploss'].map((tab) => (
-            <button
+        {/* Tabs */}
+        <div className="flex gap-4 mb-6">
+          {["normal", "stoploss"].map((tab) => (
+            <motion.button
               key={tab}
+              type="button"
+              variants={tabVariants}
+              whileHover="hover"
+              animate={activeTab === tab ? "active" : ""}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded font-bold text-lg relative ${activeTab === tab ? 'text-[#68A875] font-bold text-xl' : 'bg-transparent'}`}
+              className={`px-4 py-2 text-base sm:text-lg font-semibold relative ${
+                activeTab === tab
+                  ? darkMode
+                    ? "text-[#68A875]"
+                    : "text-[#2D5F8B]"
+                  : darkMode
+                  ? "text-gray-400"
+                  : "text-gray-600"
+              }`}
             >
-              {tab === 'normal' ? 'Normal' : 'Stop loss'}
+              {tab === "normal" ? "Normal" : "Stop Loss"}
               {activeTab === tab && (
-                <div className="absolute bottom-1 left-0 right-0 h-[.5px] bg-[#68A875] rounded"></div>
+                <motion.div
+                  className={`absolute bottom-0 left-0 right-0 h-0.5 ${
+                    darkMode ? "bg-[#68A875]" : "bg-[#2D5F8B]"
+                  }`}
+                  layoutId="underline"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
               )}
-            </button>
+            </motion.button>
           ))}
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Product Type & Quantity */}
-          <div>
-            <label className="block mb-2">Product Type</label>
-            <div className="flex bg-white rounded-2xl overflow-hidden w-max p-2">
-              {['intraday', 'delivery'].map((type) => (
-                <button
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Product Type</label>
+            <div className="flex bg-gray-200 dark:bg-gray-700 rounded-xl p-1">
+              {["intraday", "delivery"].map((type) => (
+                <motion.button
                   key={type}
                   type="button"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
                   onClick={() => setProductType(type)}
-                  className={`px-2 text-sm font-semibold rounded-2xl ${productType === type ? 'bg-[#1A3B5D] text-white' : 'bg-white text-black'}`}
+                  className={`px-3 py-1 text-sm font-semibold rounded-xl ${
+                    productType === type
+                      ? darkMode
+                        ? "bg-[#1A3B5D] text-white"
+                        : "bg-[#2D5F8B] text-white"
+                      : darkMode
+                      ? "bg-gray-700 text-gray-300"
+                      : "bg-gray-200 text-gray-900"
+                  }`}
                 >
-                  {type}
-                </button>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </motion.button>
               ))}
             </div>
-            <label className="block mt-4 mb-2">Quantity</label>
-            <input
+            <label className="block mt-4 text-sm font-medium">Quantity</label>
+            <motion.input
               type="number"
               defaultValue="1"
-              {...register('quantity', { valueAsNumber: true, min: 1 })}
-              className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
+              {...register("quantity", { valueAsNumber: true, min: 1 })}
+              whileFocus={{ scale: 1.02, borderColor: darkMode ? "#9CA3AF" : "#3B82F6" }}
+              className={`w-20 px-3 py-2 rounded-lg border shadow-sm focus:outline-none focus:ring-2 transition-all duration-300 ${
+                darkMode
+                  ? "bg-gray-700 text-white border-gray-600 focus:ring-gray-500"
+                  : "bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500"
+              }`}
               step="1"
               min={1}
             />
-            {errors.quantity && <p className="text-red-500 text-sm">Quantity must be at least 1</p>}
+            {errors.quantity && (
+              <p className="text-red-500 text-xs mt-1">Quantity must be at least 1</p>
+            )}
           </div>
 
-          {/* Price with Limit/Market Toggle */}
-          <div>
-            <label className="block mb-2">Price</label>
-            <input
+          {/* Price */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Price</label>
+            <motion.input
               type="number"
               defaultValue={orderAsset.last_traded_price}
-              {...register('price', { required: !orderSettings.isMarketOrder })}
-              className="w-24 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
+              {...register("price", { required: !orderSettings.isMarketOrder })}
+              whileFocus={{ scale: 1.02, borderColor: darkMode ? "#9CA3AF" : "#3B82F6" }}
+              className={`w-24 px-3 py-2 rounded-lg border shadow-sm focus:outline-none focus:ring-2 transition-all duration-300 ${
+                darkMode
+                  ? "bg-gray-700 text-white border-gray-600 focus:ring-gray-500"
+                  : "bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500"
+              } ${orderSettings.isMarketOrder ? "opacity-50 cursor-not-allowed" : ""}`}
               disabled={orderSettings.isMarketOrder}
             />
-            {errors.price && <p className="text-red-500 text-sm">Price is required</p>}
-            <div className="flex items-center gap-2 mt-2 mb-2">
-              <span className='text-xs'>Limit</span>
-              <button
+            {errors.price && (
+              <p className="text-red-500 text-xs mt-1">Price is required</p>
+            )}
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-xs">Limit</span>
+              <motion.button
                 type="button"
-                onClick={() => toggleOrderSetting('isMarketOrder')}
-                className={`w-8 h-4 rounded-full ${orderSettings.isMarketOrder ? 'bg-blue-900' : 'bg-gray-600'}`}
+                onClick={() => toggleOrderSetting("isMarketOrder")}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className={`w-8 h-4 rounded-full ${
+                  orderSettings.isMarketOrder
+                    ? darkMode
+                      ? "bg-blue-700"
+                      : "bg-blue-500"
+                    : "bg-gray-400"
+                }`}
               >
-                <div
-                  className={`w-4 h-4 bg-white rounded-full transform ${orderSettings.isMarketOrder ? 'translate-x-4' : 'translate-x-0'} transition-transform`}
+                <motion.div
+                  className="w-4 h-4 bg-white rounded-full"
+                  animate={{ x: orderSettings.isMarketOrder ? 16 : 0 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 />
-              </button>
-              <span className='text-xs'>Market</span>
+              </motion.button>
+              <span className="text-xs">Market</span>
             </div>
           </div>
 
           {/* Stop Loss */}
-          <div>
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block mb-2">Stop Loss</label>
-              <button
+              <label className="block text-sm font-medium">Stop Loss</label>
+              <motion.button
                 type="button"
-                onClick={() => toggleOrderSetting('enableStopLoss')}
-                className="px-2 py-1 text-xs bg-gray-500 rounded"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={() => toggleOrderSetting("enableStopLoss")}
+                className={`px-2 py-1 text-xs rounded-lg ${
+                  orderSettings.enableStopLoss
+                    ? darkMode
+                      ? "bg-blue-600 text-white"
+                      : "bg-blue-500 text-white"
+                    : darkMode
+                    ? "bg-gray-600 text-gray-300"
+                    : "bg-gray-400 text-gray-900"
+                }`}
               >
-                {orderSettings.enableStopLoss ? 'Disable' : 'Enable'}
-              </button>
+                {orderSettings.enableStopLoss ? "Disable" : "Enable"}
+              </motion.button>
             </div>
-            {orderSettings.enableStopLoss && (
-              <>
-                <input
-                  type="number"
-                  {...register('stop_loss')}
-                  className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
-                  step="0.5"
-                  disabled={orderSettings.isMarketStopLoss}
-                />
-                <div className="flex items-center gap-2 mt-2 mb-2">
-                  <span className='text-xs'>Limit</span>
-                  <button
-                    type="button"
-                    onClick={() => toggleOrderSetting('isMarketStopLoss')}
-                    className={`w-8 h-4 rounded-full ${orderSettings.isMarketStopLoss ? 'bg-blue-900' : 'bg-gray-600'}`}
-                  >
-                    <div
-                      className={`w-4 h-4 bg-white rounded-full transform ${orderSettings.isMarketStopLoss ? 'translate-x-4' : 'translate-x-0'} transition-transform`}
-                    />
-                  </button>
-                  <span className='text-xs'>Market</span>
-                </div>
-                <label className="block mt-2">Trigger Price</label>
-                <input
-                  type="number"
-                  defaultValue="1045.00"
-                  {...register('stop_loss_trigger')}
-                  className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
-                  step="0.5"
-                />
-              </>
-            )}
+            <AnimatePresence>
+              {orderSettings.enableStopLoss && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.input
+                    type="number"
+                    {...register("stop_loss")}
+                    whileFocus={{ scale: 1.02, borderColor: darkMode ? "#9CA3AF" : "#3B82F6" }}
+                    className={`w-20 px-3 py-2 rounded-lg border shadow-sm focus:outline-none focus:ring-2 transition-all duration-300 ${
+                      darkMode
+                        ? "bg-gray-700 text-white border-gray-600 focus:ring-gray-500"
+                        : "bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500"
+                    } ${orderSettings.isMarketStopLoss ? "opacity-50 cursor-not-allowed" : ""}`}
+                    step="0.5"
+                    disabled={orderSettings.isMarketStopLoss}
+                  />
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs">Limit</span>
+                    <motion.button
+                      type="button"
+                      onClick={() => toggleOrderSetting("isMarketStopLoss")}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={`w-8 h-4 rounded-full ${
+                        orderSettings.isMarketStopLoss
+                          ? darkMode
+                            ? "bg-blue-700"
+                            : "bg-blue-500"
+                          : "bg-gray-400"
+                      }`}
+                    >
+                      <motion.div
+                        className="w-4 h-4 bg-white rounded-full"
+                        animate={{ x: orderSettings.isMarketStopLoss ? 16 : 0 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      />
+                    </motion.button>
+                    <span className="text-xs">Market</span>
+                  </div>
+                  <label className="block mt-2 text-sm font-medium">Trigger Price</label>
+                  <motion.input
+                    type="number"
+                    defaultValue="1045.00"
+                    {...register("stop_loss_trigger")}
+                    whileFocus={{ scale: 1.02, borderColor: darkMode ? "#9CA3AF" : "#3B82F6" }}
+                    className={`w-20 px-3 py-2 rounded-lg border shadow-sm focus:outline-none focus:ring-2 transition-all duration-300 ${
+                      darkMode
+                        ? "bg-gray-700 text-white border-gray-600 focus:ring-gray-500"
+                        : "bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500"
+                    }`}
+                    step="0.5"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Target Price */}
-          <div>
-            <div className="flex items-center gap-2 mt-2">
-              <label className="block">Target Price</label>
-              <button
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium">Target Price</label>
+              <motion.button
                 type="button"
-                onClick={() => toggleOrderSetting('enableTarget')}
-                className={`px-2 py-1 text-xs bg-gray-500 rounded ${orderSettings.enableTarget ? 'bg-blue-600' : 'bg-gray-600'}`}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                onClick={() => toggleOrderSetting("enableTarget")}
+                className={`px-2 py-1 text-xs rounded-lg ${
+                  orderSettings.enableTarget
+                    ? darkMode
+                      ? "bg-blue-600 text-white"
+                      : "bg-blue-500 text-white"
+                    : darkMode
+                    ? "bg-gray-600 text-gray-300"
+                    : "bg-gray-400 text-gray-900"
+                }`}
               >
-                {orderSettings.enableTarget ? 'Disable' : 'Enable'}
-              </button>
+                {orderSettings.enableTarget ? "Disable" : "Enable"}
+              </motion.button>
             </div>
-            {orderSettings.enableTarget && (
-              <>
-                <input
-                  type="number"
-                  defaultValue="1075.00"
-                  {...register('target_price')}
-                  className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
-                  step="0.5"
-                  disabled={orderSettings.isMarketTarget}
-                />
-                <div className="flex items-center gap-2 mt-2 mb-2">
-                  <span className='text-xs'>Limit</span>
-                  <button
-                    type="button"
-                    onClick={() => toggleOrderSetting('isMarketTarget')}
-                    className={`w-8 h-4 rounded-full ${orderSettings.isMarketTarget ? 'bg-blue-900' : 'bg-gray-600'}`}
-                  >
-                    <div
-                      className={`w-4 h-4 bg-white rounded-full transform ${orderSettings.isMarketTarget ? 'translate-x-4' : 'translate-x-0'} transition-transform`}
-                    />
-                  </button>
-                  <span className='text-xs'>Market</span>
-                </div>
-                <label className="block mt-2">Trigger Price</label>
-                <input
-                  type="number"
-                  defaultValue="1076.00"
-                  {...register('target_price_trigger')}
-                  className="w-20 px-3 py-2 bg-transparent border border-[#002F42] rounded-[15px] focus:outline-none"
-                  step="0.5"
-                />
-              </>
-            )}
+            <AnimatePresence>
+              {orderSettings.enableTarget && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.input
+                    type="number"
+                    defaultValue="1075.00"
+                    {...register("target_price")}
+                    whileFocus={{ scale: 1.02, borderColor: darkMode ? "#9CA3AF" : "#3B82F6" }}
+                    className={`w-20 px-3 py-2 rounded-lg border shadow-sm focus:outline-none focus:ring-2 transition-all duration-300 ${
+                      darkMode
+                        ? "bg-gray-700 text-white border-gray-600 focus:ring-gray-500"
+                        : "bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500"
+                    } ${orderSettings.isMarketTarget ? "opacity-50 cursor-not-allowed" : ""}`}
+                    step="0.5"
+                    disabled={orderSettings.isMarketTarget}
+                  />
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs">Limit</span>
+                    <motion.button
+                      type="button"
+                      onClick={() => toggleOrderSetting("isMarketTarget")}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className={`w-8 h-4 rounded-full ${
+                        orderSettings.isMarketTarget
+                          ? darkMode
+                            ? "bg-blue-700"
+                            : "bg-blue-500"
+                          : "bg-gray-400"
+                      }`}
+                    >
+                      <motion.div
+                        className="w-4 h-4 bg-white rounded-full"
+                        animate={{ x: orderSettings.isMarketTarget ? 16 : 0 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      />
+                    </motion.button>
+                    <span className="text-xs">Market</span>
+                  </div>
+                  <label className="block mt-2 text-sm font-medium">Trigger Price</label>
+                  <motion.input
+                    type="number"
+                    defaultValue="1076.00"
+                    {...register("target_price_trigger")}
+                    whileFocus={{ scale: 1.02, borderColor: darkMode ? "#9CA3AF" : "#3B82F6" }}
+                    className={`w-20 px-3 py-2 rounded-lg border shadow-sm focus:outline-none focus:ring-2 transition-all duration-300 ${
+                      darkMode
+                        ? "bg-gray-700 text-white border-gray-600 focus:ring-gray-500"
+                        : "bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500"
+                    }`}
+                    step="0.5"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* Submit and Cancel Buttons */}
-        <div className="flex mt-6 justify-between">
-          <button
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-4 mt-6">
+          <motion.button
             type="button"
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
             onClick={handleCancelButton}
-            className="px-4 py-2 bg-[#e94560] text-white rounded-[15px]"
+            className={`px-4 py-2 rounded-lg text-sm sm:text-base font-semibold ${
+              darkMode
+                ? "bg-red-600 hover:bg-red-700 text-white"
+                : "bg-red-500 hover:bg-red-600 text-white"
+            }`}
           >
             Cancel
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="submit"
-            className="px-4 py-2 bg-[#2d9e73] text-white rounded-[15px]"
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            className={`px-4 py-2 rounded-lg text-sm sm:text-base font-semibold ${
+              darkMode
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-[#2d9e73] hover:bg-[#3ab885] text-white"
+            }`}
           >
             Submit
-          </button>
+          </motion.button>
         </div>
       </form>
     </motion.div>
@@ -327,5 +496,3 @@ const OrderModal = () => {
 };
 
 export default OrderModal;
-
-
