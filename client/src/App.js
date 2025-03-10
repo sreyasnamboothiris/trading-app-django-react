@@ -14,6 +14,8 @@ import Test from './Pages/Test/Test';
 import OrderPage from './Pages/Positions/OrderPage';
 import Chat from './Pages/Admin/Chat';
 import UserChat from './Pages/Profile/UserChat';
+import PortfolioPage from './Pages/Positions/PortfolioPage';
+import LandingPage from './Components/LandingPage';
 
 function App() {
   return (
@@ -27,6 +29,7 @@ function App() {
       <div className="bg-white k:black">
         <Router>
           <Routes>
+            <Route path='landing/' element={<LandingPage/>} />
             <Route path="/" element={<LoginPage />} />
             <Route path='user/profile/' element={<Profile />} />
             <Route path='user/profile/edit' element={<EditProfile />} />
@@ -35,6 +38,7 @@ function App() {
             <Route path='admin/user/edit/:id' element={<AdminEditUser />} />
             <Route path='home/chart/' element={<ChartPage />} />
             <Route path='home/' element={<Home />} />
+            <Route path='user/portfolio/' element={<PortfolioPage/>}/>
 
             <Route path='admin/currency' element={<Currency />} />
             <Route path='user/order' element={<OrderPage/>}/>
