@@ -59,6 +59,9 @@ class TradeService:
 
     @staticmethod
     def check_balance(user_active_account, price, quantity):
+        if not user_active_account or not price or not quantity:
+            print('some none values in the checkblance')
+            raise ValidationError()
         if user_active_account.get_balance() < price * quantity:
             return False
         else:
@@ -75,12 +78,18 @@ class TradeService:
     @staticmethod
     def execute_delivery_order(order,data,user_account):
         # Execute delivery order
-        if data['order_type'] == 'market':
-            pass
-            
-        elif data['order_type'] == 'limit':
-            # Check if order is still valid
-            pass
+        
+        match order.trade_type:
+            case 'buy':
+                print('handling buy order')
+                # 1) checking balance
+                price = order.limit_price if order.limit_price else get_market_price(order.asset.get_symbol(),order.asset.get_resource())
+                amount = TradeService.check_balance()
+                print(amount)
+            case 'sell':
+                print('handling sell order')
+            case _:
+                print('handling default case')
         
 
     @staticmethod
@@ -143,12 +152,10 @@ class TradeService:
         asset = Asset.objects.get(id=data['asset_id'])
         trade_type = data['trade_type']
         order = Order.objects.get(id=23)
-        if trade_type == 'buy':
-            print('buy order')
-            TradeService.buy_order(data, user_account)
-        elif trade_type == 'sell':
-            print('sell order')
-            TradeService.sell_order(data, user_account)
+        print(model_to_dict(order))
+        if order.trade_duration == 'delivery':
+            TradeService.execute_delivery_order(order,data,user_account)
+        
         
         # if order_type == 'market':
             
