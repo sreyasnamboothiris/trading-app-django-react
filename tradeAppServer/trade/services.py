@@ -113,7 +113,7 @@ class TradeService:
                     average_price=price
                 )
                 print(
-                    f"Added {quantity} units of {asset.name} to {portfolio.name} at ${price:.2f} avg price")
+                    f"Added {quantity} units of {asset.name} to {portfolio.portfolio_name} at ${price:.2f} avg price")
 
         elif trade_type == 'sell':
             if not portfolio_item or portfolio_item.quantity < quantity:
@@ -125,11 +125,11 @@ class TradeService:
 
             if portfolio_item.quantity == 0:
                 portfolio_item.delete()  # Remove asset from portfolio
-                print(f"Sold all {asset.name}, removed from {portfolio.name}")
+                print(f"Sold all {asset.name}, removed from {portfolio.portfolio_name}")
             else:
                 portfolio_item.save()
                 print(
-                    f"Sold {quantity} units of {asset.name}, remaining {portfolio_item.quantity} in {portfolio.name}")
+                    f"Sold {quantity} units of {asset.name}, remaining {portfolio_item.quantity} in {portfolio.portfolio_name}")
         items = portfolio.items.all()
         # Sum all item investments
         total_investment = sum(item.total_investment for item in items)
@@ -204,11 +204,11 @@ class TradeService:
                     order.asset.get_symbol(), order.asset.get_resource())
                 amount = TradeService.check_balance(
                     user_account, price, order.quantity)
-                print(amount,'here i am printing amount')
                 if amount is False:
                     order.status = 'rejected'
                     order.save()
                     raise ValidationError({'error': 'Insufficient balance.'})
+                
                 # 2) executing trade & updating balance
                 trade_complete = TradeService.buy_order(
                     order, data, user_account, amount)
@@ -216,11 +216,39 @@ class TradeService:
                     raise ValidationError({'error': 'Trade failed.'})
                 TradeService.balance_update(
                     user_account, amount, action='debit')
+                TradeService.update_portfolio(
+                user_account.user, order.asset, order.quantity, order.price, user_account, 'buy')   # Update portfolio
                 order.save()
                 return True
 
             case 'sell':
                 print('handling sell order')
+                # 1) checking balance
+                price = order.limit_price if order.limit_price else get_market_price(
+                    order.asset.get_symbol(), order.asset.get_resource())
+                portfolio = Portfolio.objects.get(account=user_account)
+                portfolio_item = PortfolioItem.objects.filter(
+                    portfolio=portfolio, asset=order.asset).first()
+                if portfolio_item is None or portfolio_item.quantity < order.quantity:
+                    order.status = 'rejected'
+                    order.save()
+                    raise ValidationError({'error': 'Insufficient quantity to sell.'})
+                # 2) executing trade & updating balance
+                amount = price * order.quantity
+                
+                trade_complete = TradeService.sell_order(
+                    order, data, user_account, amount)
+                
+                if not trade_complete:
+                    raise ValidationError({'error': 'Trade failed.'})
+                print('here i am printing amount', amount)
+                TradeService.balance_update(
+                    user_account, amount, action='credit')
+                TradeService.update_portfolio(
+                user_account.user, order.asset, order.quantity, order.price, user_account, 'sell') 
+                order.save()
+                
+                return True
             case _:
                 print('handling default case')
 
@@ -247,8 +275,7 @@ class TradeService:
             executed = TradeService.execute_market_order(order, user_account)
             if not executed:
                 raise ValidationError({'error': 'Trade failed.'})
-            TradeService.update_portfolio(
-                user_account.user, order.asset, order.quantity, order.price, user_account, 'buy')   # Update portfolio
+            
 
             return True
         elif order.trade_type == 'limit':
@@ -259,8 +286,16 @@ class TradeService:
         return True
 
     @staticmethod
-    def sell_order(data, user_account):
-        pass
+    def sell_order(order, data, user_account, amount):
+        print('handling sell order')
+        if order.order_type == 'market':
+            print('market order')
+            executed = TradeService.execute_market_order(order, user_account)
+            if not executed:
+                raise ValidationError({'error': 'Trade failed.'})
+            return True
+        elif order.trade_type == 'limit':
+            pass
 
     @staticmethod
     def execute_limit_orders(symbol, price):
