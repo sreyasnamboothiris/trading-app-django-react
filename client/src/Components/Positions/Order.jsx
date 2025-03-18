@@ -39,8 +39,8 @@ function Order() {
 
   const filteredOrders = orders.filter((order) => {
     if (activeTab === "openOrders") return order.status.toLowerCase() === "pending";
-    if (activeTab === "orderHistory") 
-      return ["executed", "cancelled"].includes(order.status.toLowerCase());
+    if (activeTab === "orderHistory")
+      return ["executed", "cancelled", "rejected"].includes(order.status.toLowerCase());
     return false;
   });
 
@@ -58,11 +58,10 @@ function Order() {
   };
 
   return (
-    <div className={`min-h-screen p-4 sm:p-6 transition-colors duration-300 ${
-      darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
-    }`}>
+    <div className={`min-h-screen p-4 sm:p-6 transition-colors duration-300 ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      }`}>
       {/* Tab Navigation */}
-      <motion.div 
+      <motion.div
         className="flex flex-wrap gap-2 sm:gap-4 mb-6 justify-center sm:justify-start"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -74,13 +73,12 @@ function Order() {
             onClick={() => setActiveTab(tab)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`px-3 py-2 sm:px-5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-300 shadow-md ${
-              activeTab === tab
+            className={`px-3 py-2 sm:px-5 sm:py-3 rounded-xl text-sm sm:text-base font-medium transition-all duration-300 shadow-md ${activeTab === tab
                 ? "bg-gradient-to-r from-[#68A875] to-[#559366] text-white"
                 : darkMode
                   ? "bg-gray-800 hover:bg-gray-700 text-gray-200"
                   : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-200"
-            }`}
+              }`}
           >
             {tab === "openOrders" ? "Open Orders" : tab === "positions" ? "Positions" : "Order History"}
           </motion.button>
@@ -98,9 +96,8 @@ function Order() {
           transition={{ duration: 0.3 }}
           className="overflow-x-auto rounded-xl shadow-lg bg-opacity-80 backdrop-blur-sm"
         >
-          <table className={`w-full text-sm sm:text-base ${
-            darkMode ? "bg-gray-800/95" : "bg-white/95"
-          }`}>
+          <table className={`w-full text-sm sm:text-base ${darkMode ? "bg-gray-800/95" : "bg-white/95"
+            }`}>
             <thead>
               <tr className={`text-left ${darkMode ? "bg-gray-700" : "bg-gray-100"}`}>
                 {["Asset", "Order", "Qty", "Placed", "Exec.", "Last", "Status"].map((header) => (
@@ -138,9 +135,8 @@ function Order() {
                     animate="visible"
                     whileHover="hover"
                     transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className={`${
-                      darkMode ? "hover:bg-gray-750" : "hover:bg-gray-50"
-                    }`}
+                    className={`${darkMode ? "hover:bg-gray-750" : "hover:bg-gray-50"
+                      }`}
                   >
                     <td className="p-3 sm:p-4">
                       <div className="font-medium">{order.asset.name}</div>
@@ -154,11 +150,10 @@ function Order() {
                     <td className="p-3 sm:p-4">{order.executed_price || "-"}</td>
                     <td className="p-3 sm:p-4">{order.asset.last_traded_price}</td>
                     <td className="p-3 sm:p-4">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                        order.status.toLowerCase() === "executed"
+                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${order.status.toLowerCase() === "executed"
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      }`}>
+                        }`}>
                         {order.status}
                       </span>
                       <div className="text-xs mt-1 text-gray-500 dark:text-gray-400">

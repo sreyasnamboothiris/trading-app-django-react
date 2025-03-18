@@ -22,10 +22,12 @@ urlpatterns = [
 
     # Watchlist
     path('account/watchlists/', views.WatchlistView.as_view(), name='watchlist-view'),
-
     path('account/watchlists/list/',views.WatchlistItemView.as_view(),name='watchlist-update'),
     path('account/watchlists/list/<int:watchlistId>/',views.WatchlistItemView.as_view(),name='watchlist-update'),
     path('account/watchlists/list/<int:watchlistId>/<int:assetId>/', views.WatchlistItemView.as_view(), name='watchlist-item-delete'),
+
+    # Portfolio
+    path('account/portfolio/', views.PortfolioView.as_view(), name='portfolio-view'),
 
     # other details
     path('currency/list/', views.CurrencyListView.as_view(), name='currency-list'),
