@@ -16,7 +16,7 @@ class TradeTestApiView(generics.ListCreateAPIView):
 
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
+    def get_queryset(self,request):
         # Return orders for the current authenticated user.
         print('helle')
 
@@ -35,12 +35,12 @@ class OrderView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        print(request)
         print('msg vannu')
         user_active_account = request.user.get_user_acitve_account()
         orders = Order.objects.filter(account=user_active_account).order_by('-created_at')
 
         if orders:
-            
             self.store_pending_orders_in_redis(orders)
             serialized_orders = OrderSerializer(orders, many=True).data
             return Response({'orders': serialized_orders}, status=200)
