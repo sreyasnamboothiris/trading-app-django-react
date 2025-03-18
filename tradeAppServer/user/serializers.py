@@ -6,7 +6,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from market.models import Asset
 from market.serializers import AssetSerializer
-from .models import CustomUser, Currency, Account, TemporaryUser, Watchlist, WatchlistItem
+from .models import CustomUser, Currency, Account, TemporaryUser, Watchlist, WatchlistItem, Portfolio, PortfolioItem
 from django.core.exceptions import ValidationError
 
 
@@ -207,3 +207,36 @@ class WatchlistItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = WatchlistItem
         fields = ['id', 'watchlist', 'asset', 'added_at']  
+
+class PortfolioItemSerializer(serializers.ModelSerializer):
+    """Serializer for PortfolioItem, used inside PortfolioSerializer."""
+    
+    asset_name = serializers.CharField(source='asset.name', read_only=True)
+    current_value = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PortfolioItem
+        fields = [
+            'id', 'portfolio', 'asset', 'asset_name', 'quantity', 'average_price',
+            'purchase_date', 'total_investment', 'weightage', 'current_value'
+        ]
+
+    def get_current_value(self, obj):
+        """Fetches the current value using the model method."""
+        return obj.current_value()
+
+
+class PortfolioSerializer(serializers.ModelSerializer):
+    """Serializer for Portfolio model, including nested PortfolioItemSerializer."""
+
+    user = serializers.StringRelatedField(read_only=True)
+    items = PortfolioItemSerializer(many=True, read_only=True)
+    total_investment = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    current_value = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Portfolio
+        fields = [
+            'id', 'user', 'account', 'portfolio_name', 'created_at',
+            'total_investment', 'current_value', 'items'
+        ]

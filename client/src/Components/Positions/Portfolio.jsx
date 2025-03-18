@@ -1,52 +1,40 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../../interceptors";
 
 const Portfolio = () => {
-  // Demo assets data
-  const demoAssets = [
-    {
-      id: 1,
-      name: "Stock A",
-      ltp: 150.25,
-      avgBuy: 145.00,
-      quantity: 10,
-      totalInvestment: 1450.00,
-      currentValue: 1502.50,
-      todayValue: 12.50,
-    },
-    {
-      id: 2,
-      name: "Stock B",
-      ltp: 275.80,
-      avgBuy: 280.00,
-      quantity: 5,
-      totalInvestment: 1400.00,
-      currentValue: 1379.00,
-      todayValue: -21.00,
-    },
-    {
-      id: 3,
-      name: "Stock C",
-      ltp: 95.60,
-      avgBuy: 90.00,
-      quantity: 20,
-      totalInvestment: 1800.00,
-      currentValue: 1912.00,
-      todayValue: 112.00,
-    },
-  ];
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [portfolio, setPortfolio] = useState({});
+  const user = useSelector((state) => state.auth.isAuth);
+
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("user/account/portfolio/", {
+          headers: { Authorization: `Bearer ${user.access}` },
+        });
+        setAssets(response.data.items);
+        setPortfolio(response.data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssets();
+  }, []);
 
   const [darkMode] = useState(() =>
     localStorage.theme === "dark" ||
     (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
   );
 
-  // Calculate totals
-  const totalInvestment = demoAssets.reduce((sum, asset) => sum + asset.totalInvestment, 0).toFixed(2);
-  const currentValue = demoAssets.reduce((sum, asset) => sum + asset.currentValue, 0).toFixed(2);
-  const totalTodayValue = demoAssets.reduce((sum, asset) => sum + asset.todayValue, 0).toFixed(2);
+  const totalInvestment = assets.reduce((sum, asset) => sum + parseFloat(asset.total_investment), 0).toFixed(2);
+  const currentValue = assets.reduce((sum, asset) => sum + parseFloat(asset.current_value), 0).toFixed(2);
 
-  // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -75,7 +63,6 @@ const Portfolio = () => {
         darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
       }`}
     >
-      {/* Summary Box */}
       <motion.div
         variants={summaryVariants}
         className={`w-full p-4 sm:p-6 rounded-xl shadow-lg mb-6 ${
@@ -106,29 +93,12 @@ const Portfolio = () => {
               ${currentValue}
             </span>
           </div>
-          <div className="text-center">
-            <span className="block text-sm sm:text-base font-medium">Today's Gain/Loss</span>
-            <span
-              className={`text-lg sm:text-xl ${
-                totalTodayValue >= 0
-                  ? darkMode
-                    ? "text-green-400"
-                    : "text-green-500"
-                  : darkMode
-                  ? "text-red-400"
-                  : "text-red-500"
-              }`}
-            >
-              {totalTodayValue >= 0 ? "+" : ""}${totalTodayValue}
-            </span>
-          </div>
         </div>
       </motion.div>
 
-      {/* Individual Assets */}
       <div className="space-y-4">
         <AnimatePresence>
-          {demoAssets.map((asset) => (
+          {assets.map((asset) => (
             <motion.div
               key={asset.id}
               variants={cardVariants}
@@ -139,56 +109,12 @@ const Portfolio = () => {
                 darkMode ? "bg-gray-800" : "bg-white"
               }`}
             >
-              <h3 className="text-lg font-semibold mb-3">{asset.name}</h3>
+              <h3 className="text-lg font-semibold mb-3">{asset.asset_name}</h3>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 text-sm">
-                <div className="flex-1">
-                  <span className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>LTP: </span>
-                  <span>${asset.ltp.toFixed(2)}</span>
-                </div>
-                <div className="flex-1">
-                  <span className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>Avg Buy: </span>
-                  <span>${asset.avgBuy.toFixed(2)}</span>
-                </div>
-                <div className="flex-1">
-                  <span className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>Qty: </span>
-                  <span>{asset.quantity}</span>
-                </div>
-                <div className="flex-1">
-                  <span className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>Total Inv.: </span>
-                  <span>${asset.totalInvestment.toFixed(2)}</span>
-                </div>
-                <div className="flex-1">
-                  <span className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>Current Val.: </span>
-                  <span
-                    className={`${
-                      asset.currentValue >= asset.totalInvestment
-                        ? darkMode
-                          ? "text-green-400"
-                          : "text-green-500"
-                        : darkMode
-                        ? "text-red-400"
-                        : "text-red-500"
-                    }`}
-                  >
-                    ${asset.currentValue.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <span className={`${darkMode ? "text-gray-400" : "text-gray-600"}`}>Today’s Val.: </span>
-                  <span
-                    className={`${
-                      asset.todayValue >= 0
-                        ? darkMode
-                          ? "text-green-400"
-                          : "text-green-500"
-                        : darkMode
-                        ? "text-red-400"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {asset.todayValue >= 0 ? "+" : ""}${asset.todayValue.toFixed(2)}
-                  </span>
-                </div>
+                <div className="flex-1">Qty: {asset.quantity}</div>
+                <div className="flex-1">Avg Buy: ${parseFloat(asset.average_price).toFixed(2)}</div>
+                <div className="flex-1">Total Inv.: ${parseFloat(asset.total_investment).toFixed(2)}</div>
+                <div className="flex-1 text-green-500">Current Val.: ${parseFloat(asset.current_value).toFixed(2)}</div>
               </div>
             </motion.div>
           ))}

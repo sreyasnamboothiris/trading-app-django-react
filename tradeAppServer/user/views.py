@@ -18,9 +18,9 @@ from django.contrib.auth import authenticate
 import random
 from market.serializers import AssetSerializer
 from market.models import Asset
-from .models import CustomUser, Account, TemporaryUser, Watchlist, WatchlistItem
+from .models import CustomUser, Account, TemporaryUser, Watchlist, WatchlistItem, Portfolio
 from mpadmin.models import Currency
-from .serializers import PasswordResetSerializer, UserSerializers, AccountSerializer, CurrencySerializer, WatchlistItemSerializer, WatchlistSerializer
+from .serializers import PasswordResetSerializer, PortfolioSerializer, UserSerializers, AccountSerializer, CurrencySerializer, WatchlistItemSerializer, WatchlistSerializer
 from rest_framework.generics import ListAPIView
 import json
 import os
@@ -35,6 +35,7 @@ load_dotenv()
 class UserSignupView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     authentication_classes = []
+
     def post(self, request):
         username = request.data.get('username')
         email = request.data.get('email')
@@ -570,6 +571,26 @@ class WatchlistItemView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
+##### Portfolio #####
+class PortfolioView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Fetch the user's active portfolio and return serialized data."""
+        user_active_account = request.user.get_active_account()
+
+        portfolio = Portfolio.objects.filter(account=user_active_account).first()
+        
+        if not portfolio:
+            return Response({"error": "No portfolio found for the active account."}, status=404)
+        
+        serializer = PortfolioSerializer(portfolio)
+        return Response(serializer.data, status=200)
+
+    
+
 ##### Others #####
 
 
@@ -583,9 +604,16 @@ class TestApi(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # Example logic for GET request
-        data = {}
-        return Response({"email": 'email@gmail.com'}, status=200)
+        """Fetch the user's active portfolio and return serialized data."""
+        user_active_account = request.user.get_active_account()
+
+        portfolio = Portfolio.objects.filter(account=user_active_account).first()
+        
+        if not portfolio:
+            return Response({"error": "No portfolio found for the active account."}, status=404)
+        
+        serializer = PortfolioSerializer(portfolio)
+        return Response(serializer.data, status=200)
 
     def post(self, request):
         try:

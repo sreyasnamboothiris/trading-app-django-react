@@ -9,6 +9,7 @@ from .serializers import OrderSerializer
 from .services import TradeService, OrderService
 from .models import Order
 
+
 # Test View with JWT Authentication
 
 
@@ -67,3 +68,5 @@ class OrderView(APIView):
                 #TradeService.store_limit_order(order.id, order.asset.symbol, order.trade_type, float(order.limit_price))
 
                 #print(f"Stored Order {order.id} in Redis.")
+
+
