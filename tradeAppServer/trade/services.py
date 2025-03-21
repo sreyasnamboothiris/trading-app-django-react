@@ -139,7 +139,7 @@ class TradeService:
                 if not trade_complete:
                     raise ValidationError({'error': 'Trade failed.'})
                 if trade_complete == 'executed':
-                    user_account.update_balance(amount, action='credit') 
+                    print('trade executed')
                 elif trade_complete == 'pending':
                     print('trade pending')
             case _:
@@ -231,7 +231,6 @@ class TradeService:
     def excute_order(data, user_account):
         print('entered excute order function')
         order = TradeService.create_order(data, user_account)
-        print('order created')
         
         if order.trade_duration == 'delivery':
             TradeService.execute_delivery_order(order, data, user_account)
