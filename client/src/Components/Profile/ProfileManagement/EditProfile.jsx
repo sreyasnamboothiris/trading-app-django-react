@@ -123,7 +123,6 @@ function EditProfile() {
       animate="visible"
       className={`min-h-screen ${darkMode ? "bg-gray-900 text-white" : "bg-[#F5F5F5] text-gray-900"}`}
     >
-      <Header />
       <AnimatePresence>
         {loading ? (
           <motion.div
@@ -137,18 +136,11 @@ function EditProfile() {
           </motion.div>
         ) : (
           <div className="flex flex-col lg:flex-row">
-            {/* Watchlist Sidebar */}
-            <motion.div
-              variants={itemVariants}
-              className="hidden lg:block p-4 lg:w-1/4"
-            >
-              <Watchlist />
-            </motion.div>
 
             {/* Main Content */}
             <motion.div
               variants={itemVariants}
-              className="w-full lg:w-3/4 py-4 px-4 sm:px-8"
+              className="w-full lg:w-4/4 py-4 px-4 sm:px-8"
             >
               <div className={`p-6 sm:p-8 rounded-2xl shadow-xl ${darkMode ? "bg-gray-800" : "bg-white"}`}>
                 <motion.h1
