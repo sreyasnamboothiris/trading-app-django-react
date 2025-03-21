@@ -2,8 +2,9 @@ import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
-from user.models import CustomUser,Account  # User Model
+from user.models import CustomUser,Account, Portfolio, PortfolioItem  # User Model
 from market.models import Asset  # Stocks, Crypto, etc.
+from decimal import Decimal
 
 
 class Order(models.Model):
@@ -29,7 +30,8 @@ class Order(models.Model):
     )
     TRADE_DURATION = (
         ('intraday', 'Intraday'),
-        ('longterm', 'Long-Term')
+        ('longterm', 'Long-Term'),
+        ('delivery', 'Delivery')
     )
 
     
@@ -92,4 +94,47 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+
+        if self.status == 'executed' and (self.trade_duration in ['delivery', 'longterm']):
+            portfolio,_ = Portfolio.objects.get_or_create(user=self.user, account = self.account)
+            if self.trade_type == "buy":
+            # Check if asset already exists in portfolio
+                portfolio_item, created = PortfolioItem.objects.get_or_create(
+                    portfolio=portfolio,
+                    asset=self.asset,
+                    defaults={'quantity': Decimal(0), 'average_price': self.price}
+                )
+                print('portfolio_item \n here is the thing \n ',portfolio_item)
+                # Update quantity and average price
+                if not created:
+                    new_quantity = portfolio_item.quantity + self.quantity
+                    new_average_price = ((portfolio_item.quantity * portfolio_item.average_price) + 
+                                        (self.quantity * Decimal(self.price))) / new_quantity
+
+                    portfolio_item.quantity = new_quantity
+                    portfolio_item.average_price = new_average_price
+                else:
+                    portfolio_item.quantity = self.quantity
+                    portfolio_item.average_price = self.price
+                
+                portfolio_item.save()
+
+            elif self.trade_type == "sell":
+                try:
+                    portfolio_item = PortfolioItem.objects.get(portfolio=portfolio, asset=self.asset)
+
+                    if portfolio_item.quantity >= self.quantity:
+                        portfolio_item.quantity -= self.quantity
+                        if portfolio_item.quantity == 0:
+                            portfolio_item.delete()  # Remove if all shares are sold
+                        else:
+                            portfolio_item.save()
+                        portfolio.account.update_balance(self.quantity * self.price, action='credit')
+                        
+                    else:
+                        raise ValidationError("Not enough quantity in portfolio to sell.")
+
+                except PortfolioItem.DoesNotExist:
+                    raise ValidationError("No holdings found in portfolio for this asset.")
+            
         

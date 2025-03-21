@@ -213,6 +213,14 @@ class Account(models.Model):
     def get_balance(self):
         return self.funds
 
+    def update_balance(self, amount, action='debit'):
+        amount = Decimal(str(amount)).quantize(Decimal('0.01')) # Convert to Decimal and round off to 2 decimal places
+        if action == 'debit':
+            self.funds -= amount
+        else:
+            self.funds += amount
+        self.save()
+
     def clean(self):
         # Validation for account name: minimum 4 characters, no extra spaces
         stripped_name = self.name.strip()
@@ -335,6 +343,14 @@ class PortfolioItem(models.Model):
 
     def save(self, *args, **kwargs):
         """Update total investment before saving."""
+            # Convert float to Decimal
+        if isinstance(self.average_price, float):
+            self.average_price = Decimal(str(self.average_price))
+
+        if isinstance(self.quantity, float):
+            self.quantity = Decimal(str(self.quantity))
+
+        # Calculate total investment
         self.total_investment = self.quantity * self.average_price
         super().save(*args, **kwargs)  # Save the object first
 
@@ -349,3 +365,6 @@ class PortfolioItem(models.Model):
         """Calculates the current market value of the asset in the portfolio."""
         # Assuming asset has a field 'current_price' that tracks live market price
         return self.quantity * self.asset.current_price if hasattr(self.asset, 'current_price') else self.total_investment
+
+
+
