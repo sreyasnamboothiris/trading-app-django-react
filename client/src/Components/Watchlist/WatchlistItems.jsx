@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../interceptors";
+import { ws } from "../../api";
 import { setSelectedAsset, setWatchlistData, updateIsOrder } from "../../store/homeDataSlice";
 import OrderModal from "../Positions/OrderModal";
 
